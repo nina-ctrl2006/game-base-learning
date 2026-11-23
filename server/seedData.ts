@@ -1,0 +1,1142 @@
+import type { DatabaseState } from '../src/types.ts';
+
+export function createSeedData(): DatabaseState {
+  const now = '2026-11-20T08:00:00.000Z';
+
+  return {
+    users: [
+      {
+        id: 'usr_admin_1',
+        name: 'Ramdhani Fitrahtunnisa, S.Pd',
+        email: 'admin@officemystery.id',
+        password: 'admin123',
+        role: 'admin',
+        avatarId: 'detective_mentor',
+        institution: 'Prodi Pendidikan Administrasi Perkantoran UNJ',
+        createdAt: '2026-10-01T08:00:00.000Z',
+        lastActiveAt: now,
+      },
+      {
+        id: 'usr_siswa_1',
+        name: 'Nisrina Mumtaz',
+        email: 'siswa@officemystery.id',
+        password: 'siswa123',
+        role: 'siswa',
+        avatarId: 'detective_blue',
+        institution: 'SMK Negeri 1 Jakarta · MPLB',
+        createdAt: '2026-10-12T09:00:00.000Z',
+        lastActiveAt: now,
+      },
+      {
+        id: 'usr_siswa_2',
+        name: 'Devi Amelia Tambunan',
+        email: 'devi@officemystery.id',
+        password: 'siswa123',
+        role: 'siswa',
+        avatarId: 'detective_mint',
+        institution: 'Pendidikan Administrasi Perkantoran UNJ',
+        createdAt: '2026-10-14T10:30:00.000Z',
+        lastActiveAt: '2026-11-19T14:20:00.000Z',
+      },
+      {
+        id: 'usr_siswa_3',
+        name: 'Bima Pratama',
+        email: 'bima@officemystery.id',
+        password: 'siswa123',
+        role: 'siswa',
+        avatarId: 'detective_yellow',
+        institution: 'SMK Negeri 14 Jakarta · MPLB',
+        createdAt: '2026-10-18T11:00:00.000Z',
+        lastActiveAt: '2026-11-18T16:10:00.000Z',
+      },
+    ],
+
+    categories: [
+      {
+        id: 'cat_data',
+        name: 'Pengelolaan Data',
+        description: 'Validasi basis data pegawai, integritas pencatatan, dan deteksi duplikasi.',
+        color: '#BB8AE8',
+        order: 1,
+      },
+      {
+        id: 'cat_arsip',
+        name: 'Kearsipan & Dokumen',
+        description: 'Sistem klasifikasi arsip, penyimpanan kronologis/subjek, dan temu kembali.',
+        color: '#54BCEB',
+        order: 2,
+      },
+      {
+        id: 'cat_inventaris',
+        name: 'Pengelolaan Inventaris',
+        description: 'Pencatatan sarana prasarana kantor, stock opname, dan pelaporan aset.',
+        color: '#71C98A',
+        order: 3,
+      },
+      {
+        id: 'cat_keamanan',
+        name: 'Keamanan Informasi',
+        description: 'Klasifikasi kerahasiaan dokumen, hak akses, dan pencegahan kebocoran data.',
+        color: '#FFCA65',
+        order: 4,
+      },
+      {
+        id: 'cat_komunikasi',
+        name: 'Komunikasi & Korespondensi',
+        description: 'Tata naskah dinas, layanan pelanggan, dan etika komunikasi perkantoran.',
+        color: '#FFDCE8',
+        order: 5,
+      },
+    ],
+
+    materials: [
+      {
+        id: 'mat_data_pegawai',
+        title: 'Manajemen Data Pegawai & Deteksi Duplikasi',
+        categoryId: 'cat_data',
+        description:
+          'Pelajari teknik memeriksa kesamaan data kepegawaian, identifikasi kunci unik (NIP/NIK), dan prosedur pembersihan catatan ganda.',
+        content: `## Pentingnya Akurasi Data Kepegawaian
+
+Di lingkungan administrasi perkantoran modern, **integritas basis data pegawai** menjadi fondasi bagi penggajian, absensi, penilaian kinerja, dan pengarsipan riwayat karier. Kesalahan pencatatan sekecil apa pun—seperti nomor induk ganda atau salah ketik departemen—dapat menyebabkan kekacauan administratif.
+
+## Ciri-Ciri Data Pegawai Ganda
+
+- **Nomor Induk Pegawai (NIP) Identik**: Dua baris data memakai NIP sama meskipun format penulisannya sedikit berbeda.
+- **Kesamaan Nama dan Tanggal Lahir**: Pegawai yang sama tercatat dua kali karena mutasi unit kerja atau input ulang.
+- **Inkonsistensi Kontak & Email**: Satu pegawai memiliki dua akun aktif dengan jabatan berbeda.
+
+## Langkah Audit & Penyelamatan Data
+
+- Lakukan **pemeriksaan kunci unik (Primary Key)** seperti NIP atau NIK terlebih dahulu.
+- Bandingkan **dokumen sumber resmi** (SK Pengangkatan atau KTP) sebelum menghapus atau menggabungkan baris.
+- Catat setiap perubahan pada **log audit administrasi** agar riwayat perbaikan dapat ditelusuri.`,
+        imageUrl: '/src/assets/images/materi_data_1795397877161.jpg',
+        pdfUrl: '/assets/aistudio/PAPER_PROGRES_PEMBUATAN_APLIKASI_GAME_EDUKASI_a2e5525a.pdf',
+        pdfName: 'Panduan_Konsep_Office_Mystery.pdf',
+        videoUrl: '',
+        objectives: [
+          'Mengidentifikasi tanda-tanda duplikasi data pada daftar pegawai kantor.',
+          'Menentukan kunci unik (NIP/NIK) sebagai acuan validasi pencatatan.',
+          'Menerapkan langkah penggabungan data yang aman tanpa menghilangkan riwayat resmi.',
+        ],
+        keyPoints: [
+          'Gunakan NIP/NIK sebagai pengenal unik utama, bukan hanya nama lengkap.',
+          'Verifikasi dengan dokumen SK resmi sebelum menandai data untuk dihapus.',
+          'Selalu simpan catatan perubahan (audit trail) setelah membersihkan data.',
+        ],
+        difficulty: 'Pemula',
+        estimatedMinutes: 10,
+        order: 1,
+        status: 'published',
+        createdAt: '2026-10-05T09:00:00.000Z',
+        updatedAt: now,
+      },
+      {
+        id: 'mat_kearsipan',
+        title: 'Sistem Kearsipan & Penemuan Dokumen Hilang',
+        categoryId: 'cat_arsip',
+        description:
+          'Kuasai lima sistem penyimpanan arsip (abjad, subjek, kronologis, wilayah, nomor) serta cara melacak dokumen yang salah simpan.',
+        content: `## Konsep Dasar Manajemen Kearsipan
+
+**Kearsipan** adalah kegiatan pengaturan dan penyimpanan warkat atau dokumen secara sistematis agar setiap saat dibutuhkan dapat **ditemukan kembali dengan cepat dan tepat**. Dokumen yang tersimpan pada folder yang tidak sesuai akan menghambat pengambilan keputusan pimpinan.
+
+## Sistem Klasifikasi Arsip Utama
+
+- **Sistem Subjek (Pokok Masalah)**: Mengelompokkan surat berdasarkan isi topik, misalnya *Kepegawaian (KP)*, *Keuangan (KU)*, dan *Sarana Prasarana (SP)*.
+- **Sistem Abjad**: Menyusun arsip berdasarkan urutan huruf nama individu atau organisasi yang telah diindeks.
+- **Sistem Kronologis (Tanggal)**: Mengurutkan dokumen berdasarkan tanggal penerimaan atau pembuatan surat.
+- **Sistem Nomor**: Menggunakan kode numerik/desimal untuk merujuk kategori pokok dan sub-kategori.
+
+## Prosedur Penyelamatan Dokumen Salah Simpan
+
+- Periksa **kode klasifikasi dan perihal surat** pada kepala naskah dinas.
+- Cocokkan dengan **buku agenda surat masuk/keluar** atau kartu kendali.
+- Pindahkan dokumen ke map gantung (hanging folder) yang sesuai dan perbarui daftar isi map.`,
+        imageUrl: '/src/assets/images/materi_kearsipan_1795397875440.jpg',
+        pdfUrl: '',
+        pdfName: '',
+        videoUrl: '',
+        objectives: [
+          'Membedakan jenis dokumen kantor berdasarkan pokok masalah dan kode klasifikasinya.',
+          'Menempatkan dokumen ke folder arsip sesuai prosedur kearsipan.',
+          'Menerapkan alur penemuan kembali (retrieval) untuk dokumen yang salah simpan.',
+        ],
+        keyPoints: [
+          'Kunci kearsipan yang efektif adalah kecepatan dan ketepatan temu kembali.',
+          'Kode klasifikasi wajib dicantumkan sebelum dokumen dimasukkan ke laci arsip.',
+          'Gunakan kartu peminjaman arsip (out-slip) setiap kali dokumen keluar dari map.',
+        ],
+        difficulty: 'Pemula',
+        estimatedMinutes: 12,
+        order: 2,
+        status: 'published',
+        createdAt: '2026-10-06T09:00:00.000Z',
+        updatedAt: now,
+      },
+      {
+        id: 'mat_inventaris',
+        title: 'Pencatatan & Audit Inventaris Perlengkapan Kantor',
+        categoryId: 'cat_inventaris',
+        description:
+          'Pahami cara mencocokkan buku inventaris dengan kondisi fisik barang, menghitung selisih stok, dan menyusun berita acara perbaikan.',
+        content: `## Tujuan Pengelolaan Inventaris Kantor
+
+Pengelolaan **inventaris kantor** memastikan seluruh barang milik instansi—mulai dari perlengkapan habis pakai (ATK) hingga aset tetap (laptop, printer, lemari arsip)—tercatat secara akurat, terawat, dan siap digunakan mendukung operasional kerja.
+
+## Jenis Barang & Dokumen Pencatatan
+
+- **Barang Habis Pakai**: Kertas HVS, tinta printer, map, pulpen (dicatat pada Kartu Persediaan Barang).
+- **Barang Tidak Habis Pakai (Aset Tetap)**: Laptop, proyektor, meja kerja, lemari arsip (dicatat pada Buku Induk Inventaris dengan kode register).
+
+## Teknik Stock Opname & Rekonsiliasi Data
+
+- Bandingkan kolom **Stok Tercatat di Sistem** dengan **Hasil Hitung Fisik di Gudang/Ruang Kerja**.
+- Periksa bukti **Surat Permintaan Barang (SPB)** atau formulir peminjaman apabila terdapat selisih kurang.
+- Tandai barang dengan **kondisi rusak ringan/berat** agar segera ditindaklanjuti dalam laporan pemeliharaan.`,
+        imageUrl: '/src/assets/images/materi_inventaris_1795397875092.jpg',
+        pdfUrl: '',
+        pdfName: '',
+        videoUrl: '',
+        objectives: [
+          'Membedakan pencatatan barang habis pakai dan aset tetap kantor.',
+          'Menemukan selisih jumlah antara catatan buku inventaris dan stok fisik.',
+          'Menentukan langkah perbaikan administrasi saat terjadi ketidaksesuaian aset.',
+        ],
+        keyPoints: [
+          'Setiap pengeluaran barang dari gudang wajib disertai formulir serah terima.',
+          'Kode barang inventaris membantu pelacakan lokasi ruangan dan penanggung jawab.',
+          'Selisih stok harus diaudit melalui bukti mutasi sebelum mengubah saldo buku.',
+        ],
+        difficulty: 'Menengah',
+        estimatedMinutes: 12,
+        order: 3,
+        status: 'published',
+        createdAt: '2026-10-07T09:00:00.000Z',
+        updatedAt: now,
+      },
+      {
+        id: 'mat_keamanan',
+        title: 'Keamanan Informasi & Pengaturan Hak Akses Dokumen',
+        categoryId: 'cat_keamanan',
+        description:
+          'Pelajari klasifikasi tingkat kerahasiaan dokumen kantor, prinsip least privilege, dan penanganan insiden kebocoran informasi.',
+        content: `## Mengapa Keamanan Informasi Krusial?
+
+Di era perkantoran digital, staf administrasi sering menangani **dokumen sensitif** seperti daftar gaji, kontrak kerja sama, data pribadi karyawan, hingga rencana strategis perusahaan. Kesalahan pengaturan hak akses dapat memicu kebocoran data yang merugikan organisasi secara hukum dan reputasi.
+
+## Klasifikasi Tingkat Kerahasiaan Dokumen
+
+- **Terbuka / Publik**: Pengumuman umum, brosur layanan, jadwal operasional kantor.
+- **Internal**: SOP kerja rutin, memo rapat koordinasi divisi, daftar hadir kegiatan internal.
+- **Terbatas / Rahasia**: Data gaji pegawai, rekam medis SDM, kontrak vendor, kata sandi atau kredensial sistem.
+
+## Prinsip Pengendalian Hak Akses
+
+- Terapkan **Principle of Least Privilege**: Karyawan hanya diberi akses sesuai kebutuhan tugasnya (*View Only* vs *Editor*).
+- **Jangan pernah mengirim dokumen rahasia** melalui tautan publik tanpa kata sandi atau melalui grup obrolan terbuka.
+- Selalu **verifikasi identitas dan persetujuan atasan** sebelum membagikan akses dokumen sensitif.`,
+        imageUrl: '/src/assets/images/materi_keamanan_1795397875048.jpg',
+        pdfUrl: '',
+        pdfName: '',
+        videoUrl: '',
+        objectives: [
+          'Mengelompokkan dokumen berdasarkan tingkat kerahasiaan (Publik, Internal, Rahasia).',
+          'Menentukan level hak akses yang tepat bagi setiap jabatan di kantor.',
+          'Mengambil tindakan pencegahan ketika terjadi permintaan akses mencurigakan.',
+        ],
+        keyPoints: [
+          'Dokumen rahasia wajib dilindungi pembatasan akses dan kata sandi.',
+          'Prinsip Least Privilege membatasi akses hanya kepada pihak yang berwenang.',
+          'Verifikasi permintaan eksternal selalu dilakukan lewat jalur resmi atasan.',
+        ],
+        difficulty: 'Menengah',
+        estimatedMinutes: 14,
+        order: 4,
+        status: 'published',
+        createdAt: '2026-10-08T09:00:00.000Z',
+        updatedAt: now,
+      },
+      {
+        id: 'mat_komunikasi',
+        title: 'Komunikasi Perkantoran & Tata Naskah Dinas',
+        categoryId: 'cat_komunikasi',
+        description:
+          'Pahami etika komunikasi tertulis di kantor, struktur surat dinas resmi, serta penanganan keluhan pelanggan secara profesional.',
+        content: `## Peran Komunikasi dalam Layanan Bisnis
+
+**Komunikasi perkantoran** yang efektif memastikan pesan antarunit kerja dan kepada pelanggan tersampaikan tanpa salah tafsir. Staf administrasi wajib menguasai penyusunan surat dinas maupun respons pelayanan pelanggan.
+
+## Bagian Penting Surat Dinas Resmi
+
+- **Kepala Surat (Kop)**: Identitas resmi instansi/perusahaan lengkap dengan alamat dan kontak.
+- **Nomor, Lampiran, dan Perihal**: Memberikan kode registrasi surat keluar serta ringkasan isi surat.
+- **Alamat Tujuan & Salam Pembuka**: Ditujukan secara jelas kepada pejabat atau pihak terkait.
+- **Isi Surat & Penutup Resmi**: Bahasa baku, lugas, sopan, disertai tanda tangan dan stempel pengesahan.
+
+## Etika Pelayanan Pelanggan Kantor
+
+- Dengarkan keluhan atau kebutuhan tamu/pelanggan secara aktif tanpa memotong pembicaraan.
+- Berikan informasi yang **akurat, empatik, dan memiliki kejelasan tindak lanjut**.`,
+        imageUrl: '/src/assets/images/hero_office_mystery_1795397873973.jpg',
+        pdfUrl: '',
+        pdfName: '',
+        videoUrl: '',
+        objectives: [
+          'Menyusun komponen surat dinas resmi sesuai kaidah tata naskah.',
+          'Memilih gaya bahasa komunikasi profesional dalam korespondensi kantor.',
+          'Menerapkan sikap solutif saat menangani permintaan atau keluhan pelanggan.',
+        ],
+        keyPoints: [
+          'Nomor dan perihal surat wajib dicatat dalam buku agenda surat keluar.',
+          'Gunakan kalimat efektif, sopan, dan bebas ambiguitas dalam email maupun surat resmi.',
+          'Catat setiap keluhan pelanggan untuk eskalasi ke unit terkait.',
+        ],
+        difficulty: 'Pemula',
+        estimatedMinutes: 9,
+        order: 5,
+        status: 'published',
+        createdAt: '2026-10-09T09:00:00.000Z',
+        updatedAt: now,
+      },
+    ],
+
+    games: [
+      {
+        id: 'game_misi_1',
+        materialId: 'mat_data_pegawai',
+        title: 'Misi 1: Misteri Data Pegawai Ganda',
+        description:
+          'Audit daftar pegawai PT Nusantara Karya yang mengalami kekacauan menjelang penggajian bulanan.',
+        story:
+          'Pagi ini bagian HRD menemukan kejanggalan: total daftar pegawai di sistem bertambah secara misterius, padahal tidak ada rekrutmen baru! Sebagai staf administrasi penyelamat data, periksa tabel pegawai dan selesaikan kasus duplikasi sebelum proses transfer gaji dimulai.',
+        instructions:
+          'Periksa setiap baris tabel dengan cermat, temukan data ganda atau salah pencatatan, dan tentukan tindakan administrasi yang tepat.',
+        timerSeconds: 300,
+        difficulty: 'Pemula',
+        status: 'published',
+        challenges: [
+          {
+            id: 'ch_m1_1',
+            order: 1,
+            type: 'find_the_error',
+            title: 'Audit Tabel Induk Pegawai',
+            prompt:
+              'Klik dan tandai baris pada tabel pegawai di bawah ini yang merupakan DATA GANDA atau memiliki kesalahan NIP!',
+            points: 40,
+            explanation:
+              'Baris 3 (NIP 20240102 - Andi Wijaya) adalah duplikat dari baris 2 dengan penulisan departemen berbeda, dan baris 5 memiliki format NIP tidak valid (kurang digit).',
+            tableTitle: 'Daftar Pegawai Aktif · Periode November 2026',
+            columns: ['NIP', 'Nama Lengkap', 'Divisi', 'Status'],
+            rows: [
+              {
+                id: 'r1',
+                cells: ['20240101', 'Siti Rahmawati', 'Keuangan', 'Tetap'],
+                isError: false,
+              },
+              {
+                id: 'r2',
+                cells: ['20240102', 'Andi Wijaya', 'Administrasi', 'Tetap'],
+                isError: false,
+              },
+              {
+                id: 'r3',
+                cells: ['20240102', 'Andi Wijaya', 'Admin Umum', 'Tetap'],
+                isError: true,
+                errorReason: 'NIP 20240102 tercatat ganda dengan nama divisi berbeda.',
+              },
+              {
+                id: 'r4',
+                cells: ['20240103', 'Dewi Lestari', 'Pemasaran', 'Kontrak'],
+                isError: false,
+              },
+              {
+                id: 'r5',
+                cells: ['202401', 'Raka Pratama', 'Kearsipan', 'Tetap'],
+                isError: true,
+                errorReason: 'Format NIP tidak lengkap (seharusnya 8 digit: 20240104).',
+              },
+            ],
+          },
+          {
+            id: 'ch_m1_2',
+            order: 2,
+            type: 'multiple_choice',
+            title: 'Menentukan Kunci Unik Validasi',
+            prompt:
+              'Setelah menemukan data ganda atas nama "Andi Wijaya", kolom manakah yang paling akurat dijadikan kunci unik (Primary Key) untuk mencegah duplikasi di masa depan?',
+            points: 30,
+            explanation:
+              'NIP (Nomor Induk Pegawai) bersifat unik untuk setiap pegawai, sedangkan nama lengkap atau jabatan bisa dimiliki oleh lebih dari satu orang.',
+            options: [
+              'Nama Lengkap Pegawai',
+              'Nomor Induk Pegawai (NIP)',
+              'Nama Divisi Kerja',
+              'Status Kontrak/Tetap',
+            ],
+            correctIndex: 1,
+          },
+          {
+            id: 'ch_m1_3',
+            order: 3,
+            type: 'decision_making',
+            title: 'Prosedur Penanganan Duplikat',
+            prompt:
+              'Anda menemukan dua baris untuk pegawai yang sama: satu memiliki nomor rekening terbaru, satu lagi memiliki riwayat cuti lengkap. Keputusan terbaik adalah...',
+            points: 30,
+            explanation:
+              'Memverifikasi dengan dokumen resmi HRD lalu menggabungkan data valid ke satu profil induk menjaga keutuhan riwayat kerja sekaligus ketepatan rekening gaji.',
+            situation:
+              'Waktu tutup buku penggajian tinggal 2 jam lagi dan kedua baris sama-sama menyimpan informasi penting.',
+            impactNote: 'Menghapus sembarangan berisiko menghilangkan data cuti atau salah transfer gaji.',
+            choices: [
+              {
+                id: 'dec_1',
+                label: 'Menghapus kedua baris lalu meminta pegawai mengisi ulang dari awal',
+                consequence: 'Memperlambat penggajian dan menghilangkan riwayat cuti.',
+                scoreRatio: 0.2,
+                isOptimal: false,
+              },
+              {
+                id: 'dec_2',
+                label: 'Verifikasi ke SK/dokumen HRD resmi, gabungkan atribut valid ke satu entri NIP, lalu catat di log audit',
+                consequence: 'Data akurat, riwayat utuh, dan perubahan terdokumentasi resmi.',
+                scoreRatio: 1,
+                isOptimal: true,
+              },
+              {
+                id: 'dec_3',
+                label: 'Membiarkan kedua baris tetap aktif agar tidak ada data yang hilang',
+                consequence: 'Menyebabkan pembayaran gaji ganda dan laporan keuangan tidak akurat.',
+                scoreRatio: 0,
+                isOptimal: false,
+              },
+            ],
+          },
+        ],
+        createdAt: '2026-10-05T10:00:00.000Z',
+        updatedAt: now,
+      },
+      {
+        id: 'game_misi_2',
+        materialId: 'mat_kearsipan',
+        title: 'Misi 2: Misteri Dokumen Hilang di Ruang Arsip',
+        description:
+          'Bantu kepala bagian tata usaha menyortir kembali dokumen penting yang tercampur di lemari arsip.',
+        story:
+          'Setelah renovasi ruang arsip selesai, beberapa map dokumen tercampur dan tiga surat penting belum masuk folder yang sesuai. Tugas Anda adalah mengklasifikasikan surat, mencocokkan kode arsip, dan menyusun ulang SOP penyimpanan arsip.',
+        instructions:
+          'Gunakan pengetahuan klasifikasi arsip untuk menempatkan dokumen ke folder yang tepat, mencocokkan kode, dan mengurutkan prosedur.',
+        timerSeconds: 360,
+        difficulty: 'Pemula',
+        status: 'published',
+        challenges: [
+          {
+            id: 'ch_m2_1',
+            order: 1,
+            type: 'drag_and_drop',
+            title: 'Klasifikasi Dokumen ke Folder Arsip',
+            prompt:
+              'Seret (atau klik untuk menempatkan) setiap dokumen berikut ke folder kategori arsip yang tepat!',
+            points: 40,
+            explanation:
+              'SK Pengangkatan masuk ke Arsip Kepegawaian (KP), Kuitansi Pembelian ke Arsip Keuangan (KU), dan Berita Acara Pengadaan Printer ke Sarana Prasarana (SP).',
+            zones: [
+              { id: 'zone_kp', label: 'Folder KP · Kepegawaian', color: '#54BCEB' },
+              { id: 'zone_ku', label: 'Folder KU · Keuangan', color: '#71C98A' },
+              { id: 'zone_sp', label: 'Folder SP · Sarana Prasarana', color: '#FFCA65' },
+            ],
+            items: [
+              {
+                id: 'doc_1',
+                label: 'SK Pengangkatan Staf Baru',
+                sublabel: 'No. 14/HRD/2026',
+                correctZoneId: 'zone_kp',
+              },
+              {
+                id: 'doc_2',
+                label: 'Kuitansi Pelunasan Listrik Kantor',
+                sublabel: 'Rp 4.250.000',
+                correctZoneId: 'zone_ku',
+              },
+              {
+                id: 'doc_3',
+                label: 'Surat Permohonan Cuti Tahunan',
+                sublabel: 'Divisi Layanan Pelanggan',
+                correctZoneId: 'zone_kp',
+              },
+              {
+                id: 'doc_4',
+                label: 'Berita Acara Pembelian Printer Laser',
+                sublabel: 'Unit Tata Usaha',
+                correctZoneId: 'zone_sp',
+              },
+            ],
+          },
+          {
+            id: 'ch_m2_2',
+            order: 2,
+            type: 'matching',
+            title: 'Cocokkan Sistem Penyimpanan Arsip',
+            prompt:
+              'Hubungkan setiap jenis dokumen di sisi kiri dengan metode sistem penyimpanan arsip yang paling sesuai di sisi kanan.',
+            points: 30,
+            explanation:
+              'Faktur harian disusun berdasarkan tanggal (Kronologis), berkas nasabah berdasarkan nama (Abjad), dan dokumen cabang daerah berdasarkan Wilayah.',
+            pairs: [
+              {
+                id: 'pair_1',
+                left: 'Berkas Rekening & Profil Klien Individu',
+                right: 'Sistem Abjad (Alfabetis)',
+              },
+              {
+                id: 'pair_2',
+                left: 'Faktur Transaksi & Surat Masuk Harian',
+                right: 'Sistem Kronologis (Tanggal)',
+              },
+              {
+                id: 'pair_3',
+                left: 'Laporan Penjualan Cabang Bandung & Surabaya',
+                right: 'Sistem Wilayah (Geografis)',
+              },
+            ],
+          },
+          {
+            id: 'ch_m2_3',
+            order: 3,
+            type: 'ordering',
+            title: 'Urutkan Prosedur Penyimpanan Arsip',
+            prompt:
+              'Susun langkah penyimpanan surat masuk ke dalam sistem kearsipan dari tahap paling awal hingga akhir!',
+            points: 30,
+            explanation:
+              'Alur standar kearsipan: Periksa kelengkapan surat -> Mengindeks -> Memberi kode klasifikasi -> Menyortir -> Menempatkan di folder laci arsip.',
+            steps: [
+              { id: 'ord_1', text: 'Memeriksa tanda siap simpan (release mark) pada surat' },
+              { id: 'ord_2', text: 'Mengindeks judul atau kata tangkap dokumen' },
+              { id: 'ord_3', text: 'Memberikan kode klasifikasi arsip pada sudut kanan atas' },
+              { id: 'ord_4', text: 'Menempatkan surat ke dalam map gantung sesuai kode' },
+            ],
+          },
+        ],
+        createdAt: '2026-10-06T10:00:00.000Z',
+        updatedAt: now,
+      },
+      {
+        id: 'game_misi_3',
+        materialId: 'mat_inventaris',
+        title: 'Misi 3: Audit Inventaris Ruang Perlengkapan',
+        description:
+          'Lakukan stock opname cepat untuk menemukan selisih antara catatan buku inventaris dan barang fisik di kantor.',
+        story:
+          'Menjelang akhir triwulan, kepala kantor meminta laporan inventaris ruangan. Namun jumlah barang di rak gudang ternyata tidak sama dengan laporan sistem! Teliti catatan stok, temukan selisihnya, dan selesaikan kasus peminjaman alat.',
+        instructions:
+          'Bandingkan jumlah catatan sistem dengan hasil hitung fisik, lalu pecahkan studi kasus administrasi inventaris.',
+        timerSeconds: 300,
+        difficulty: 'Menengah',
+        status: 'published',
+        challenges: [
+          {
+            id: 'ch_m3_1',
+            order: 1,
+            type: 'find_the_error',
+            title: 'Temukan Selisih Stock Opname',
+            prompt:
+              'Tandai baris barang inventaris yang memiliki selisih jumlah fisik atau kesalahan pencatatan status!',
+            points: 40,
+            explanation:
+              'Proyektor Epson tercatat 4 unit di sistem tetapi fisik hanya 3 unit (selisih -1), dan Kertas A4 tercatat 50 rim namun fisik 42 rim.',
+            tableTitle: 'Lembar Rekonsiliasi Inventaris · Ruang Perlengkapan',
+            columns: ['Kode Barang', 'Nama Barang', 'Catatan Sistem', 'Hitung Fisik'],
+            rows: [
+              {
+                id: 'inv_1',
+                cells: ['INV-01', 'Laptop Kerja Lenovo', '12 Unit', '12 Unit'],
+                isError: false,
+              },
+              {
+                id: 'inv_2',
+                cells: ['INV-02', 'Proyektor Epson EB-X', '4 Unit', '3 Unit'],
+                isError: true,
+                errorReason: 'Terdapat selisih kurang 1 unit proyektor yang belum tercatat.',
+              },
+              {
+                id: 'inv_3',
+                cells: ['INV-03', 'Lemari Arsip Besi 4 Laci', '6 Unit', '6 Unit'],
+                isError: false,
+              },
+              {
+                id: 'inv_4',
+                cells: ['INV-04', 'Kertas HVS A4 80gr', '50 Rim', '42 Rim'],
+                isError: true,
+                errorReason: 'Selisih 8 rim kertas keluar yang belum diinput ke kartu stok.',
+              },
+            ],
+          },
+          {
+            id: 'ch_m3_2',
+            order: 2,
+            type: 'case_simulation',
+            title: 'Studi Kasus: Proyektor Hilang Saat Rapat',
+            prompt:
+              'Berdasarkan memo internal berikut, tindakan administrasi apa yang harus Anda lakukan pertama kali?',
+            points: 35,
+            explanation:
+              'Proyektor dipinjam untuk pelatihan divisi namun lupa dicatat di buku peminjaman. Staf harus memeriksa lokasi ruangan pelatihan dan melengkapi Formulir Peminjaman Aset.',
+            dossierTitle: 'Memo Internal Gudang Perlengkapan #089',
+            dossierSender: 'Bagian Rumah Tangga Kantor',
+            dossierContent:
+              'Catatan hasil pengecekan: 1 unit Proyektor Epson (INV-02) tidak berada di rak gudang. Menurut satpam pagi ini, staf Divisi Pemasaran membawa tas proyektor menuju Ruang Rapat Anggrek lantai 3 tanpa mengisi buku log peminjaman.',
+            options: [
+              'Langsung melaporkan kehilangan proyektor ke pihak kepolisian',
+              'Mengubah angka catatan sistem menjadi 3 unit agar terlihat sama dengan fisik',
+              'Mengonfirmasi ke Ruang Rapat Anggrek dan mewajibkan pengisian formulir peminjaman aset',
+              'Membeli proyektor baru dengan dana kas kecil tanpa berita acara',
+            ],
+            correctIndex: 2,
+          },
+          {
+            id: 'ch_m3_3',
+            order: 3,
+            type: 'true_false',
+            title: 'Validasi Dokumen Pengeluaran ATK',
+            prompt: 'Tentukan apakah pernyataan prosedur inventaris berikut Benar atau Salah.',
+            statement:
+              'Pengeluaran barang habis pakai seperti kertas dan tinta boleh langsung mengubah saldo sistem tanpa bukti Surat Permintaan Barang (SPB).',
+            correctAnswer: false,
+            points: 25,
+            explanation:
+              'Salah! Setiap barang yang keluar dari gudang wajib memiliki bukti tertulis (SPB atau bon permintaan) agar mutasi barang dapat dipertanggungjawabkan.',
+          },
+        ],
+        createdAt: '2026-10-07T10:00:00.000Z',
+        updatedAt: now,
+      },
+      {
+        id: 'game_misi_4',
+        materialId: 'mat_keamanan',
+        title: 'Misi 4: Penyelamatan Dokumen Rahasia',
+        description:
+          'Lindungi dokumen strategis perusahaan dari kebocoran dan atur hak akses digital dengan tepat.',
+        story:
+          'Folder Cloud kantor baru saja menerima puluhan permintaan akses eksternal dan beberapa dokumen rahasia ditemukan berada di folder publik! Sebagai pengawas keamanan informasi, hentikan potensi kebocoran data sekarang.',
+        instructions:
+          'Evaluasi tingkat kerahasiaan dokumen dan ambil keputusan yang paling aman sesuai kebijakan privasi informasi.',
+        timerSeconds: 300,
+        difficulty: 'Menengah',
+        status: 'published',
+        challenges: [
+          {
+            id: 'ch_m4_1',
+            order: 1,
+            type: 'drag_and_drop',
+            title: 'Klasifikasi Tingkat Kerahasiaan',
+            prompt:
+              'Kelompokkan dokumen kantor berikut ke folder tingkat akses keamanan yang tepat!',
+            points: 35,
+            explanation:
+              'Slip gaji & kontrak vendor adalah Rahasia, SOP rutin adalah Internal, dan jadwal layanan kantor adalah Publik.',
+            zones: [
+              { id: 'sec_public', label: 'Publik (Terbuka)', color: '#71C98A' },
+              { id: 'sec_internal', label: 'Internal Kantor', color: '#54BCEB' },
+              { id: 'sec_secret', label: 'Rahasia (Terbatas)', color: '#BB8AE8' },
+            ],
+            items: [
+              {
+                id: 'sdoc_1',
+                label: 'Rekap Slip Gaji & Tunjangan Pegawai',
+                sublabel: 'Format Excel HRD',
+                correctZoneId: 'sec_secret',
+              },
+              {
+                id: 'sdoc_2',
+                label: 'Jadwal Jam Layanan Pelanggan',
+                sublabel: 'Informasi Pengunjung',
+                correctZoneId: 'sec_public',
+              },
+              {
+                id: 'sdoc_3',
+                label: 'Panduan SOP Pengajuan Lembur',
+                sublabel: 'Seluruh Karyawan',
+                correctZoneId: 'sec_internal',
+              },
+              {
+                id: 'sdoc_4',
+                label: 'Dokumen Penawaran Harga & Kontrak Vendor',
+                sublabel: 'Direksi & Pengadaan',
+                correctZoneId: 'sec_secret',
+              },
+            ],
+          },
+          {
+            id: 'ch_m4_2',
+            order: 2,
+            type: 'decision_making',
+            title: 'Dilema Permintaan File Mendesak',
+            prompt:
+              'Seseorang yang mengaku staf mitra mengirim email mendesak meminta dikirimkan file "Rekap Data NIK Karyawan" tanpa tanda tangan manajer. Apa tindakan Anda?',
+            points: 35,
+            explanation:
+              'Data NIK karyawan termasuk data pribadi rahasia. Wajib menolak permintaan langsung, memverifikasi identitas pengirim, dan meminta persetujuan tertulis pimpinan berwenang.',
+            situation:
+              'Email menggunakan alamat pribadi (@gmail.com), bukan domain resmi perusahaan mitra, dan bertuliskan "URGENT".',
+            impactNote: 'Pengiriman data pribadi tanpa otorisasi melanggar kebijakan privasi & keamanan data.',
+            choices: [
+              {
+                id: 'sec_c1',
+                label: 'Segera melampirkan file melalui email agar pekerjaan cepat selesai',
+                consequence: 'Terjadi kebocoran data pribadi karyawan ke pihak eksternal tak terverifikasi.',
+                scoreRatio: 0,
+                isOptimal: false,
+              },
+              {
+                id: 'sec_c2',
+                label: 'Menahan pengiriman, memverifikasi keaslian pengirim, dan mengonfirmasi ke manajer berwenang',
+                consequence: 'Keamanan informasi terjaga dan potensi rekayasa sosial (phishing) berhasil digagalkan.',
+                scoreRatio: 1,
+                isOptimal: true,
+              },
+              {
+                id: 'sec_c3',
+                label: 'Mengunggah file ke tautan Google Drive publik dengan mode View Only',
+                consequence: 'Tautan publik tetap berisiko diakses dan diunduh oleh pihak luar.',
+                scoreRatio: 0.1,
+                isOptimal: false,
+              },
+            ],
+          },
+          {
+            id: 'ch_m4_3',
+            order: 3,
+            type: 'case_simulation',
+            title: 'Pengaturan Hak Akses Folder Keuangan',
+            prompt:
+              'Kepala Divisi Pemasaran meminta akses untuk melihat laporan ringkas anggaran tahunan tanpa mengubah isi angka. Hak akses apa yang paling tepat diberikan?',
+            points: 30,
+            explanation:
+              'Sesuai prinsip Least Privilege, cukup berikan akses "Viewer (Hanya Lihat)" pada folder ringkasan laporan, bukan akses "Editor" atau akses folder mentah.',
+            dossierTitle: 'Tiket Permintaan Akses Sistem #412',
+            dossierSender: 'IT & Administrasi Dokumen',
+            dossierContent:
+              'Pemohon: Manajer Pemasaran. Kebutuhan: Membaca angka pagu anggaran promosi pada file "Ringkasan_Anggaran_2026.pdf" untuk rapat perencanaan minggu depan.',
+            options: [
+              'Memberikan akses Owner agar bebas mengelola seluruh folder keuangan',
+              'Memberikan akses Editor ke seluruh dokumen gaji dan pajak',
+              'Memberikan akses Viewer (Hanya Lihat) khusus pada dokumen Ringkasan Anggaran',
+              'Mengirimkan kata sandi akun admin keuangan melalui pesan singkat',
+            ],
+            correctIndex: 2,
+          },
+        ],
+        createdAt: '2026-10-08T10:00:00.000Z',
+        updatedAt: now,
+      },
+    ],
+
+    quizzes: [
+      {
+        id: 'quiz_data_1',
+        materialId: 'mat_data_pegawai',
+        title: 'Kuis Evaluasi: Manajemen Data Pegawai',
+        description:
+          'Uji pemahaman Anda mengenai validasi data induk pegawai, deteksi duplikasi, dan audit pencatatan.',
+        timerSeconds: 240,
+        passingScore: 70,
+        status: 'published',
+        questions: [
+          {
+            id: 'qq_1',
+            order: 1,
+            type: 'multiple_choice',
+            question:
+              'Atribut yang paling tepat digunakan sebagai pengenal unik (Primary Key) agar tidak terjadi data pegawai ganda adalah...',
+            options: ['Nama Lengkap', 'Nomor Induk Pegawai (NIP)', 'Alamat Rumah', 'Jabatan'],
+            correctIndex: 1,
+            points: 25,
+            explanation: 'NIP unik untuk setiap pegawai sedangkan nama atau jabatan bisa sama.',
+          },
+          {
+            id: 'qq_2',
+            order: 2,
+            type: 'true_false',
+            question:
+              'Jika menemukan dua baris data pegawai dengan NIP sama, staf administrasi dapat langsung menghapus salah satunya tanpa memeriksa dokumen sumber.',
+            options: ['Benar', 'Salah'],
+            correctIndex: 1,
+            points: 25,
+            explanation:
+              'Salah. Pemeriksaan terhadap SK resmi dan penggabungan atribut terbaru wajib dilakukan sebelum penghapusan.',
+          },
+          {
+            id: 'qq_3',
+            order: 3,
+            type: 'multiple_choice',
+            question:
+              'Catatan yang merekam siapa yang mengubah data, kapan diubah, dan nilai sebelum-sesudah disebut...',
+            options: ['Audit Trail / Log Audit', 'Buku Tamu', 'Kartu Kendali', 'Daftar Hadir'],
+            correctIndex: 0,
+            points: 25,
+            explanation: 'Audit trail mendokumentasikan seluruh perubahan data untuk akuntabilitas.',
+          },
+          {
+            id: 'qq_4',
+            order: 4,
+            type: 'multiple_choice',
+            question:
+              'Dampak paling fatal dari tidak terdeteksinya data pegawai ganda pada sistem administrasi adalah...',
+            options: [
+              'Warna tema aplikasi berubah',
+              'Kesalahan perhitungan gaji dan tunjangan pegawai',
+              'Bertambahnya ruang penyimpanan arsip fisik',
+              'Meningkatnya kecepatan pencetakan surat',
+            ],
+            correctIndex: 1,
+            points: 25,
+            explanation:
+              'Duplikasi data pegawai berpotensi menyebabkan pembayaran gaji ganda atau kekeliruan laporan SDM.',
+          },
+        ],
+        createdAt: '2026-10-05T11:00:00.000Z',
+        updatedAt: now,
+      },
+      {
+        id: 'quiz_arsip_2',
+        materialId: 'mat_kearsipan',
+        title: 'Kuis Evaluasi: Kearsipan & Klasifikasi',
+        description:
+          'Evaluasi pemahaman tentang 5 sistem penyimpanan arsip dan prosedur penemuan kembali dokumen.',
+        timerSeconds: 240,
+        passingScore: 70,
+        status: 'published',
+        questions: [
+          {
+            id: 'qa_1',
+            order: 1,
+            type: 'multiple_choice',
+            question:
+              'Tujuan utama penyelenggaraan sistem kearsipan yang teratur di perkantoran adalah...',
+            options: [
+              'Memenuhi lemari dengan banyak map',
+              'Menemukan kembali dokumen dengan cepat dan tepat saat dibutuhkan',
+              'Menyimpan surat agar tidak pernah dibaca lagi',
+              'Menghindari penggunaan komputer di kantor',
+            ],
+            correctIndex: 1,
+            points: 25,
+            explanation: 'Fungsi inti kearsipan adalah temu kembali informasi secara cepat dan akurat.',
+          },
+          {
+            id: 'qa_2',
+            order: 2,
+            type: 'multiple_choice',
+            question:
+              'Penyimpanan dokumen berdasarkan pokok masalah atau isi surat (misalnya Keuangan, Kepegawaian) disebut...',
+            options: ['Sistem Abjad', 'Sistem Wilayah', 'Sistem Subjek', 'Sistem Kronologis'],
+            correctIndex: 2,
+            points: 25,
+            explanation: 'Sistem Subjek mengelompokkan arsip menurut pokok permasalahan isi dokumen.',
+          },
+          {
+            id: 'qa_3',
+            order: 3,
+            type: 'true_false',
+            question:
+              'Kartu peminjaman arsip (out-slip) wajib diisi ketika seseorang meminjam dokumen fisik keluar dari laci arsip.',
+            options: ['Benar', 'Salah'],
+            correctIndex: 0,
+            points: 25,
+            explanation: 'Benar! Out-slip memastikan posisi dokumen terlacak dan tidak dianggap hilang.',
+          },
+          {
+            id: 'qa_4',
+            order: 4,
+            type: 'multiple_choice',
+            question:
+              'Tahap awal sebelum dokumen dimasukkan ke map penyimpanan setelah diperiksa kelengkapannya adalah...',
+            options: [
+              'Membakar lampiran',
+              'Mengindeks dan memberi kode klasifikasi',
+              'Mengirim ulang ke pengirim',
+              'Menghapus tanggal surat',
+            ],
+            correctIndex: 1,
+            points: 25,
+            explanation: 'Pengindeksan dan pengkodean memastikan arsip masuk ke folder yang benar.',
+          },
+        ],
+        createdAt: '2026-10-06T11:00:00.000Z',
+        updatedAt: now,
+      },
+      {
+        id: 'quiz_inventaris_3',
+        materialId: 'mat_inventaris',
+        title: 'Kuis Evaluasi: Pengelolaan Inventaris',
+        description:
+          'Ukur kemampuan Anda membedakan barang habis pakai, aset tetap, dan proses stock opname.',
+        timerSeconds: 240,
+        passingScore: 70,
+        status: 'published',
+        questions: [
+          {
+            id: 'qi_1',
+            order: 1,
+            type: 'multiple_choice',
+            question: 'Manakah yang termasuk kategori Barang Tidak Habis Pakai (Aset Tetap)?',
+            options: ['Kertas HVS A4', 'Tinta Printer', 'Lemari Arsip Besi', 'Map Kertas'],
+            correctIndex: 2,
+            points: 34,
+            explanation: 'Lemari arsip besi memiliki masa pakai panjang dan masuk inventaris aset tetap.',
+          },
+          {
+            id: 'qi_2',
+            order: 2,
+            type: 'true_false',
+            question:
+              'Stock opname dilakukan dengan membandingkan jumlah tercatat di sistem/buku dengan hasil hitung fisik barang secara langsung.',
+            options: ['Benar', 'Salah'],
+            correctIndex: 0,
+            points: 33,
+            explanation: 'Benar! Stock opname memastikan kesesuaian antara pembukuan dan kondisi nyata.',
+          },
+          {
+            id: 'qi_3',
+            order: 3,
+            type: 'multiple_choice',
+            question:
+              'Jika ditemukan selisih kurang pada hitungan fisik barang, langkah pertama yang tepat adalah...',
+            options: [
+              'Mengganti angka catatan diam-diam',
+              'Memeriksa bukti mutasi, bon permintaan, atau log peminjaman barang',
+              'Membuang kartu stok lama',
+              'Mengabaikan selisih bila nilainya kecil',
+            ],
+            correctIndex: 1,
+            points: 33,
+            explanation: 'Audit bukti keluar-masuk barang menjelaskan penyebab selisih secara sah.',
+          },
+        ],
+        createdAt: '2026-10-07T11:00:00.000Z',
+        updatedAt: now,
+      },
+      {
+        id: 'quiz_keamanan_4',
+        materialId: 'mat_keamanan',
+        title: 'Kuis Evaluasi: Keamanan Informasi',
+        description:
+          'Evaluasi penerapan klasifikasi rahasia, prinsip least privilege, dan pencegahan kebocoran data.',
+        timerSeconds: 240,
+        passingScore: 70,
+        status: 'published',
+        questions: [
+          {
+            id: 'qk_1',
+            order: 1,
+            type: 'multiple_choice',
+            question:
+              'Prinsip memberikan hak akses sistem/dokumen hanya sebatas yang diperlukan untuk menjalankan tugas jabatan disebut...',
+            options: [
+              'Open Public Access',
+              'Principle of Least Privilege',
+              'Full Admin Sharing',
+              'Unrestricted Distribution',
+            ],
+            correctIndex: 1,
+            points: 34,
+            explanation: 'Least Privilege meminimalkan risiko penyalahgunaan atau kebocoran data.',
+          },
+          {
+            id: 'qk_2',
+            order: 2,
+            type: 'true_false',
+            question:
+              'Daftar rekapitulasi gaji pegawai termasuk dokumen kategori Publik yang boleh ditempel di papan pengumuman umum.',
+            options: ['Benar', 'Salah'],
+            correctIndex: 1,
+            points: 33,
+            explanation: 'Salah! Slip dan daftar gaji bersifat Rahasia/Terbatas.',
+          },
+          {
+            id: 'qk_3',
+            order: 3,
+            type: 'multiple_choice',
+            question:
+              'Tindakan aman ketika menerima email asing yang meminta data NIK karyawan secara mendesak adalah...',
+            options: [
+              'Langsung membalas dengan lampiran Excel',
+              'Memverifikasi identitas pengirim dan mengonfirmasi persetujuan atasan resmi',
+              'Membagikan tautan folder terbuka',
+              'Menghapus seluruh database pegawai',
+            ],
+            correctIndex: 1,
+            points: 33,
+            explanation: 'Verifikasi dan otorisasi atasan mencegah serangan phishing dan kebocoran data.',
+          },
+        ],
+        createdAt: '2026-10-08T11:00:00.000Z',
+        updatedAt: now,
+      },
+    ],
+
+    attempts: [
+      {
+        id: 'att_seed_1',
+        userId: 'usr_siswa_1',
+        userName: 'Nisrina Mumtaz',
+        materialId: 'mat_data_pegawai',
+        materialTitle: 'Manajemen Data Pegawai & Deteksi Duplikasi',
+        kind: 'simulation',
+        targetId: 'game_misi_1',
+        targetTitle: 'Misi 1: Misteri Data Pegawai Ganda',
+        score: 100,
+        maxScore: 100,
+        percentage: 100,
+        correctCount: 3,
+        wrongCount: 0,
+        durationSeconds: 112,
+        predikat: 'Master Administrator',
+        details: [],
+        completedAt: '2026-11-18T09:15:00.000Z',
+      },
+      {
+        id: 'att_seed_2',
+        userId: 'usr_siswa_1',
+        userName: 'Nisrina Mumtaz',
+        materialId: 'mat_data_pegawai',
+        materialTitle: 'Manajemen Data Pegawai & Deteksi Duplikasi',
+        kind: 'quiz',
+        targetId: 'quiz_data_1',
+        targetTitle: 'Kuis Evaluasi: Manajemen Data Pegawai',
+        score: 100,
+        maxScore: 100,
+        percentage: 100,
+        correctCount: 4,
+        wrongCount: 0,
+        durationSeconds: 78,
+        predikat: 'Master Administrator',
+        details: [],
+        completedAt: '2026-11-18T09:22:00.000Z',
+      },
+      {
+        id: 'att_seed_3',
+        userId: 'usr_siswa_2',
+        userName: 'Devi Amelia Tambunan',
+        materialId: 'mat_kearsipan',
+        materialTitle: 'Sistem Kearsipan & Penemuan Dokumen Hilang',
+        kind: 'simulation',
+        targetId: 'game_misi_2',
+        targetTitle: 'Misi 2: Misteri Dokumen Hilang di Ruang Arsip',
+        score: 85,
+        maxScore: 100,
+        percentage: 85,
+        correctCount: 2,
+        wrongCount: 1,
+        durationSeconds: 145,
+        predikat: 'Expert Staff',
+        details: [],
+        completedAt: '2026-11-19T14:15:00.000Z',
+      },
+      {
+        id: 'att_seed_4',
+        userId: 'usr_siswa_3',
+        userName: 'Bima Pratama',
+        materialId: 'mat_inventaris',
+        materialTitle: 'Pencatatan & Audit Inventaris Perlengkapan Kantor',
+        kind: 'quiz',
+        targetId: 'quiz_inventaris_3',
+        targetTitle: 'Kuis Evaluasi: Pengelolaan Inventaris',
+        score: 67,
+        maxScore: 100,
+        percentage: 67,
+        correctCount: 2,
+        wrongCount: 1,
+        durationSeconds: 130,
+        predikat: 'Trainee Administrator',
+        details: [],
+        completedAt: '2026-11-18T16:05:00.000Z',
+      },
+    ],
+
+    progress: [
+      {
+        userId: 'usr_siswa_1',
+        materialId: 'mat_data_pegawai',
+        materialRead: true,
+        simulationCompleted: true,
+        simulationBestScore: 100,
+        quizCompleted: true,
+        quizBestScore: 100,
+        updatedAt: '2026-11-18T09:22:00.000Z',
+      },
+      {
+        userId: 'usr_siswa_1',
+        materialId: 'mat_kearsipan',
+        materialRead: true,
+        simulationCompleted: false,
+        simulationBestScore: 0,
+        quizCompleted: false,
+        quizBestScore: 0,
+        updatedAt: '2026-11-19T10:00:00.000Z',
+      },
+      {
+        userId: 'usr_siswa_2',
+        materialId: 'mat_kearsipan',
+        materialRead: true,
+        simulationCompleted: true,
+        simulationBestScore: 85,
+        quizCompleted: false,
+        quizBestScore: 0,
+        updatedAt: '2026-11-19T14:15:00.000Z',
+      },
+      {
+        userId: 'usr_siswa_3',
+        materialId: 'mat_inventaris',
+        materialRead: true,
+        simulationCompleted: false,
+        simulationBestScore: 0,
+        quizCompleted: true,
+        quizBestScore: 67,
+        updatedAt: '2026-11-18T16:05:00.000Z',
+      },
+    ],
+
+    activities: [
+      {
+        id: 'act_1',
+        userId: 'usr_siswa_1',
+        userName: 'Nisrina Mumtaz',
+        userRole: 'siswa',
+        action: 'Menyelesaikan Simulasi (Skor 100%)',
+        targetTitle: 'Misi 1: Misteri Data Pegawai Ganda',
+        timestamp: '2026-11-18T09:15:00.000Z',
+      },
+      {
+        id: 'act_2',
+        userId: 'usr_siswa_1',
+        userName: 'Nisrina Mumtaz',
+        userRole: 'siswa',
+        action: 'Menyelesaikan Kuis (Skor 100%)',
+        targetTitle: 'Kuis Evaluasi: Manajemen Data Pegawai',
+        timestamp: '2026-11-18T09:22:00.000Z',
+      },
+      {
+        id: 'act_3',
+        userId: 'usr_siswa_2',
+        userName: 'Devi Amelia Tambunan',
+        userRole: 'siswa',
+        action: 'Menyelesaikan Simulasi (Skor 85%)',
+        targetTitle: 'Misi 2: Misteri Dokumen Hilang di Ruang Arsip',
+        timestamp: '2026-11-19T14:15:00.000Z',
+      },
+      {
+        id: 'act_4',
+        userId: 'usr_siswa_3',
+        userName: 'Bima Pratama',
+        userRole: 'siswa',
+        action: 'Menyelesaikan Kuis (Skor 67%)',
+        targetTitle: 'Kuis Evaluasi: Pengelolaan Inventaris',
+        timestamp: '2026-11-18T16:05:00.000Z',
+      },
+    ],
+  };
+}

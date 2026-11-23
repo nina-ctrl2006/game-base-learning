@@ -1,0 +1,6 @@
+{
+  "name": "Office Mystery: Misi Penyelamatan Data",
+  "description": "Platform pembelajaran digital berbasis game simulator investigasi perkantoran untuk siswa SMK MPLB, mahasiswa Administrasi Perkantoran, dan umum.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
