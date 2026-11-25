@@ -459,19 +459,19 @@ export function StudentPortal({
     <div className="min-h-screen bg-[#FFF8E9] text-[#182230]">
       {/* Student Top Bar (3-zone contract) */}
       <header className="sticky top-0 z-30 bg-white border-b border-[#EFE7D6]">
-        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-8">
+        <div className="max-w-[1240px] mx-auto px-3 sm:px-6 h-16 flex items-center justify-between gap-2 sm:gap-8">
           <button
             type="button"
             onClick={() => {
               onSelectMaterial(null);
               onChangeTab('beranda');
             }}
-            className="font-display text-xl font-extrabold tracking-tight text-[#182230] whitespace-nowrap shrink-0 cursor-pointer"
+            className="font-display text-base sm:text-xl font-extrabold tracking-tight text-[#182230] whitespace-nowrap shrink-0 cursor-pointer"
           >
             Office Mystery
           </button>
 
-          <nav aria-label="Menu Siswa" className="flex items-center gap-6 text-sm font-semibold">
+          <nav aria-label="Menu Siswa" className="flex items-center gap-3 sm:gap-6 text-xs sm:text-sm font-semibold">
             <button
               type="button"
               onClick={() => {
@@ -498,7 +498,7 @@ export function StudentPortal({
                   : 'text-[#516072] hover:text-[#182230]'
               }`}
             >
-              Daftar Materi
+              Materi
             </button>
             <button
               type="button"
@@ -512,7 +512,7 @@ export function StudentPortal({
                   : 'text-[#516072] hover:text-[#182230]'
               }`}
             >
-              Riwayat & Nilai
+              Riwayat
             </button>
           </nav>
 
@@ -520,10 +520,10 @@ export function StudentPortal({
             <button
               type="button"
               onClick={onLogout}
-              className="px-4 py-2 rounded-xl bg-[#FFF8E9] hover:bg-[#FFDCE8] text-[#182230] text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
+              className="px-3 sm:px-4 py-2 rounded-xl bg-[#FFF8E9] hover:bg-[#FFDCE8] text-[#182230] text-xs font-bold inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 cursor-pointer"
             >
               <LogOut className="w-3.5 h-3.5" />
-              <span>Keluar</span>
+              <span className="hidden sm:inline">Keluar</span>
             </button>
           </div>
         </div>

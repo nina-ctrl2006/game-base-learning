@@ -61,19 +61,14 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    // Support ?autostart=1 for automated quick start as student
+    // Support ?mode=admin to open the Admin login gate directly
     const params = new URLSearchParams(window.location.search);
-    if (params.get('autostart') === '1' && !getStoredUserId()) {
-      api
-        .login('siswa@officemystery.id', 'siswa123')
-        .then((res) => {
-          setStoredUserId(res.user.id);
-          return loadBootstrap();
-        })
-        .catch(() => loadBootstrap());
-    } else {
-      void loadBootstrap();
+    if (params.get('mode') === 'admin') {
+      setAuthModalMode('admin');
+    } else if (params.get('mode') === 'login') {
+      setAuthModalMode('login');
     }
+    void loadBootstrap();
   }, [loadBootstrap]);
 
   async function handleAuthSuccess(user: PublicUser) {
@@ -83,15 +78,6 @@ export default function App() {
     setSelectedMaterialId(null);
     setStudentTab('beranda');
     setView(user.role === 'admin' ? { type: 'admin' } : { type: 'student' });
-  }
-
-  async function handleQuickDemoLogin(role: 'admin' | 'siswa') {
-    if (role === 'admin') {
-      setAuthModalMode('admin');
-      return;
-    }
-    const res = await api.login('siswa@officemystery.id', 'siswa123');
-    await handleAuthSuccess(res.user);
   }
 
   function handleLogout() {
@@ -243,7 +229,6 @@ export default function App() {
         gamesCount={data?.games.length ?? 4}
         materials={data?.materials ?? []}
         onOpenAuth={(mode = 'login') => setAuthModalMode(mode)}
-        onQuickDemoLogin={(role) => void handleQuickDemoLogin(role)}
       />
       {authModalMode && (
         <AuthModal

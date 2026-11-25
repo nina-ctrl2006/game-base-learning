@@ -9,7 +9,7 @@
       "avatarId": "detective_mentor",
       "institution": "Prodi Pendidikan Administrasi Perkantoran UNJ",
       "createdAt": "2026-10-01T08:00:00.000Z",
-      "lastActiveAt": "2026-11-25T06:05:07.802Z"
+      "lastActiveAt": "2026-11-25T07:33:50.206Z"
     },
     {
       "id": "usr_siswa_1",
@@ -20,7 +20,7 @@
       "avatarId": "detective_blue",
       "institution": "SMK Negeri 1 Jakarta · MPLB",
       "createdAt": "2026-10-12T09:00:00.000Z",
-      "lastActiveAt": "2026-11-25T06:43:25.731Z"
+      "lastActiveAt": "2026-11-25T07:26:26.418Z"
     },
     {
       "id": "usr_siswa_2",
@@ -54,6 +54,17 @@
       "institution": "SMK Negeri 2 Bandung",
       "createdAt": "2026-11-25T06:05:05.120Z",
       "lastActiveAt": "2026-11-25T06:05:05.120Z"
+    },
+    {
+      "id": "usr_97d3884e",
+      "name": "Rina Putri",
+      "email": "rina.1795591107@sekolah.id",
+      "password": "rahasia123",
+      "role": "siswa",
+      "avatarId": "detective_blue",
+      "institution": "SMK Negeri 3 Jakarta",
+      "createdAt": "2026-11-25T07:18:39.721Z",
+      "lastActiveAt": "2026-11-25T07:18:48.605Z"
     }
   ],
   "categories": [
@@ -1143,6 +1154,24 @@
   ],
   "activities": [
     {
+      "id": "act_d2bfa1f1",
+      "userId": "usr_admin_1",
+      "userName": "Ramdhani Fitrahtunnisa, S.Pd",
+      "userRole": "admin",
+      "action": "Menambahkan pengguna baru",
+      "targetTitle": "Test Duplikat",
+      "timestamp": "2026-11-25T07:33:50.206Z"
+    },
+    {
+      "id": "act_d728849b",
+      "userId": "usr_97d3884e",
+      "userName": "Rina Putri",
+      "userRole": "siswa",
+      "action": "Mendaftar sebagai Siswa / Pemain baru",
+      "targetTitle": "Office Mystery",
+      "timestamp": "2026-11-25T07:18:39.722Z"
+    },
+    {
       "id": "act_76d95a94",
       "userId": "usr_siswa_1",
       "userName": "Nisrina Mumtaz",
@@ -1215,5 +1244,6 @@
       "timestamp": "2026-11-18T16:05:00.000Z"
     }
   ],
-  "adminAccessCode": "GURU2026"
+  "adminAccessCode": "GURU2026",
+  "studentAccessCode": "SISWA2026"
 }

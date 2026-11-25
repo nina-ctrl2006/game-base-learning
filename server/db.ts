@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import type { DatabaseState } from '../src/types.ts';
+import { resolveAdminAccessCode } from './authRules.ts';
 import { createSeedData } from './seedData.ts';
 
 const DATA_DIR = path.resolve(process.cwd(), 'data');
@@ -30,6 +31,9 @@ export function loadDatabase(): DatabaseState {
       const seed = createSeedData();
       saveDatabase(seed);
       return seed;
+    }
+    if (!parsed.adminAccessCode) {
+      parsed.adminAccessCode = resolveAdminAccessCode(parsed.adminAccessCode);
     }
     return parsed;
   } catch {

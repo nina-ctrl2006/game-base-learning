@@ -98,7 +98,10 @@ export function AdminDashboard({
   const [userPassword, setUserPassword] = useState('');
   const [userRole, setUserRole] = useState<UserRole>('siswa');
   const [userInstitution, setUserInstitution] = useState('');
+  const [userError, setUserError] = useState('');
+  const [savingUser, setSavingUser] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [showAccessCode, setShowAccessCode] = useState(false);
   const [nextAccessCode, setNextAccessCode] = useState('');
   const [accessCodeError, setAccessCodeError] = useState('');
@@ -161,23 +164,38 @@ export function AdminDashboard({
   }, [attempts, progress, materials, matMap, students.length]);
 
   function notify(msg: string) {
+    setErrorMessage('');
     setStatusMessage(msg);
     window.setTimeout(() => setStatusMessage(''), 3500);
+  }
+
+  function notifyError(err: unknown, fallback: string) {
+    setStatusMessage('');
+    setErrorMessage(err instanceof Error ? err.message : fallback);
+    window.setTimeout(() => setErrorMessage(''), 4500);
   }
 
   async function handleAddCategory(e: React.FormEvent) {
     e.preventDefault();
     if (!newCatName.trim()) return;
-    await api.saveCategory({ name: newCatName.trim(), color: newCatColor });
-    setNewCatName('');
-    await onRefresh();
-    notify('Kategori baru berhasil ditambahkan.');
+    try {
+      await api.saveCategory({ name: newCatName.trim(), color: newCatColor });
+      setNewCatName('');
+      await onRefresh();
+      notify('Kategori baru berhasil ditambahkan.');
+    } catch (err) {
+      notifyError(err, 'Gagal menambahkan kategori.');
+    }
   }
 
   async function handleDeleteCategory(id: string) {
-    await api.deleteCategory(id);
-    await onRefresh();
-    notify('Kategori berhasil dihapus.');
+    try {
+      await api.deleteCategory(id);
+      await onRefresh();
+      notify('Kategori berhasil dihapus.');
+    } catch (err) {
+      notifyError(err, 'Gagal menghapus kategori.');
+    }
   }
 
   async function handleReorderMaterial(index: number, delta: number) {
@@ -187,34 +205,46 @@ export function AdminDashboard({
     const tmp = next[index];
     next[index] = next[target];
     next[target] = tmp;
-    await api.reorderMaterials(next.map((m) => m.id));
-    await onRefresh();
+    try {
+      await api.reorderMaterials(next.map((m) => m.id));
+      await onRefresh();
+    } catch (err) {
+      notifyError(err, 'Gagal mengubah urutan materi.');
+    }
   }
 
   async function handleToggleMaterialPublish(m: Material) {
-    await api.saveMaterial({
-      ...m,
-      status: m.status === 'published' ? 'draft' : 'published',
-    });
-    await onRefresh();
-    notify(
-      m.status === 'published'
-        ? `Materi "${m.title}" dikembalikan ke Draft.`
-        : `Materi "${m.title}" dipublikasikan ke halaman Siswa.`
-    );
+    try {
+      await api.saveMaterial({
+        ...m,
+        status: m.status === 'published' ? 'draft' : 'published',
+      });
+      await onRefresh();
+      notify(
+        m.status === 'published'
+          ? `Materi "${m.title}" dikembalikan ke Draft.`
+          : `Materi "${m.title}" dipublikasikan ke halaman Siswa.`
+      );
+    } catch (err) {
+      notifyError(err, 'Gagal memperbarui status materi.');
+    }
   }
 
   async function handleToggleGamePublish(g: GameSimulation) {
-    await api.saveGame({
-      ...g,
-      status: g.status === 'published' ? 'draft' : 'published',
-    });
-    await onRefresh();
-    notify(
-      g.status === 'published'
-        ? `Simulasi "${g.title}" disimpan sebagai Draft.`
-        : `Simulasi "${g.title}" dipublikasikan.`
-    );
+    try {
+      await api.saveGame({
+        ...g,
+        status: g.status === 'published' ? 'draft' : 'published',
+      });
+      await onRefresh();
+      notify(
+        g.status === 'published'
+          ? `Simulasi "${g.title}" disimpan sebagai Draft.`
+          : `Simulasi "${g.title}" dipublikasikan.`
+      );
+    } catch (err) {
+      notifyError(err, 'Gagal memperbarui status simulasi.');
+    }
   }
 
   async function handleCreateNewQuiz() {
@@ -247,28 +277,42 @@ export function AdminDashboard({
 
   async function handleSaveQuiz(status: 'draft' | 'published') {
     if (!editingQuiz) return;
-    await api.saveQuiz({ ...editingQuiz, status });
-    setEditingQuiz(null);
-    await onRefresh();
-    notify('Kuis berhasil disimpan.');
+    try {
+      await api.saveQuiz({ ...editingQuiz, status });
+      setEditingQuiz(null);
+      await onRefresh();
+      notify('Kuis berhasil disimpan.');
+    } catch (err) {
+      notifyError(err, 'Gagal menyimpan kuis.');
+    }
   }
 
   async function handleAddUser(e: React.FormEvent) {
     e.preventDefault();
-    await api.saveUser({
-      name: userName,
-      email: userEmail,
-      password: userPassword || 'siswa123',
-      role: userRole,
-      institution: userInstitution || 'SMK MPLB',
-    });
-    setUserFormOpen(false);
-    setUserName('');
-    setUserEmail('');
-    setUserPassword('');
-    setUserInstitution('');
-    await onRefresh();
-    notify('Pengguna baru berhasil ditambahkan.');
+    setUserError('');
+    setSavingUser(true);
+    try {
+      await api.saveUser({
+        name: userName,
+        email: userEmail,
+        password: userPassword || 'siswa123',
+        role: userRole,
+        institution: userInstitution || 'SMK MPLB',
+      });
+      setUserFormOpen(false);
+      setUserName('');
+      setUserEmail('');
+      setUserPassword('');
+      setUserInstitution('');
+      await onRefresh();
+      notify('Pengguna baru berhasil ditambahkan.');
+    } catch (err) {
+      setUserError(
+        err instanceof Error ? err.message : 'Gagal menambahkan pengguna.'
+      );
+    } finally {
+      setSavingUser(false);
+    }
   }
 
   async function handleUpdateAccessCode(e: React.FormEvent) {
@@ -420,6 +464,14 @@ export function AdminDashboard({
               className="px-4 py-1.5 rounded-xl bg-[#EEF9F1] border border-[#71C98A] text-xs font-semibold text-[#1F7A3E]"
             >
               {statusMessage}
+            </div>
+          )}
+          {errorMessage && (
+            <div
+              role="alert"
+              className="px-4 py-1.5 rounded-xl bg-[#FFDCE8] border border-[#E58AA8] text-xs font-semibold text-[#7A1C3D]"
+            >
+              {errorMessage}
             </div>
           )}
         </header>
@@ -578,6 +630,47 @@ export function AdminDashboard({
                   </div>
                 </div>
               </div>
+
+              {/* Quick Admin Access Code Card */}
+              <section className="bg-white rounded-3xl p-6 border border-[#EFE7D6] flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <h2 className="font-display text-base font-extrabold flex items-center gap-2 text-[#182230]">
+                    <ShieldCheck className="w-5 h-5 text-[#6D3B9E]" />
+                    <span>Kode Khusus Login Guru / Admin</span>
+                  </h2>
+                  <p className="text-xs text-[#516072]">
+                    Bagikan hanya kepada guru atau pengelola agar siswa tidak masuk ke Dashboard Admin secara tidak sengaja.
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                  <code
+                    data-testid="overview-admin-code"
+                    className="px-3.5 py-2 rounded-xl bg-[#F5EEFC] text-[#3C2258] font-mono text-sm font-bold tracking-wider"
+                  >
+                    {showAccessCode ? adminAccessCode : '••••••••'}
+                  </code>
+                  <button
+                    type="button"
+                    onClick={() => setShowAccessCode((prev) => !prev)}
+                    aria-label={
+                      showAccessCode
+                        ? 'Sembunyikan kode khusus aktif'
+                        : 'Lihat kode khusus aktif'
+                    }
+                    className="w-9 h-9 rounded-xl bg-[#FFF8E9] hover:bg-[#FFCA65]/40 flex items-center justify-center text-[#182230] cursor-pointer"
+                  >
+                    {showAccessCode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSection('users')}
+                    className="px-4 py-2 rounded-xl bg-[#BB8AE8] hover:bg-[#AA74DC] text-[#182230] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+                  >
+                    <KeyRound className="w-3.5 h-3.5" />
+                    <span>Kelola Kode</span>
+                  </button>
+                </div>
+              </section>
             </div>
           )}
 
@@ -738,16 +831,20 @@ export function AdminDashboard({
                                 <Edit3 className="w-3.5 h-3.5" />
                                 <span>Edit</span>
                               </button>
-                              <button
-                                type="button"
-                                aria-label={`Hapus ${m.title}`}
-                                onClick={async () => {
-                                  await api.deleteMaterial(m.id);
-                                  await onRefresh();
-                                  notify('Materi dihapus.');
-                                }}
-                                className="w-8 h-8 rounded-lg bg-[#FFDCE8]/70 text-[#9A2348] flex items-center justify-center cursor-pointer"
-                              >
+                                <button
+                                  type="button"
+                                  aria-label={`Hapus ${m.title}`}
+                                  onClick={async () => {
+                                    try {
+                                      await api.deleteMaterial(m.id);
+                                      await onRefresh();
+                                      notify('Materi dihapus.');
+                                    } catch (err) {
+                                      notifyError(err, 'Gagal menghapus materi.');
+                                    }
+                                  }}
+                                  className="w-8 h-8 rounded-lg bg-[#FFDCE8]/70 text-[#9A2348] flex items-center justify-center cursor-pointer"
+                                >
                                 <Trash2 className="w-3.5 h-3.5" />
                               </button>
                             </div>
@@ -839,9 +936,13 @@ export function AdminDashboard({
                           type="button"
                           aria-label={`Hapus game ${g.title}`}
                           onClick={async () => {
-                            await api.deleteGame(g.id);
-                            await onRefresh();
-                            notify('Game simulasi dihapus.');
+                            try {
+                              await api.deleteGame(g.id);
+                              await onRefresh();
+                              notify('Game simulasi dihapus.');
+                            } catch (err) {
+                              notifyError(err, 'Gagal menghapus game simulasi.');
+                            }
                           }}
                           className="ml-auto w-9 h-9 rounded-xl bg-[#FFDCE8]/70 text-[#9A2348] flex items-center justify-center cursor-pointer"
                         >
@@ -1116,16 +1217,20 @@ export function AdminDashboard({
                         <button
                           type="button"
                           onClick={async () => {
-                            await api.saveQuiz({
-                              ...q,
-                              status: q.status === 'published' ? 'draft' : 'published',
-                            });
-                            await onRefresh();
-                            notify(
-                              q.status === 'published'
-                                ? `Kuis "${q.title}" dijadikan Draft.`
-                                : `Kuis "${q.title}" dipublikasikan.`
-                            );
+                            try {
+                              await api.saveQuiz({
+                                ...q,
+                                status: q.status === 'published' ? 'draft' : 'published',
+                              });
+                              await onRefresh();
+                              notify(
+                                q.status === 'published'
+                                  ? `Kuis "${q.title}" dijadikan Draft.`
+                                  : `Kuis "${q.title}" dipublikasikan.`
+                              );
+                            } catch (err) {
+                              notifyError(err, 'Gagal memperbarui status kuis.');
+                            }
                           }}
                           className="px-3.5 py-2 rounded-xl bg-[#EEF9F1] text-xs font-bold cursor-pointer"
                         >
@@ -1143,9 +1248,13 @@ export function AdminDashboard({
                           type="button"
                           aria-label={`Hapus kuis ${q.title}`}
                           onClick={async () => {
-                            await api.deleteQuiz(q.id);
-                            await onRefresh();
-                            notify('Kuis dihapus.');
+                            try {
+                              await api.deleteQuiz(q.id);
+                              await onRefresh();
+                              notify('Kuis dihapus.');
+                            } catch (err) {
+                              notifyError(err, 'Gagal menghapus kuis.');
+                            }
                           }}
                           className="ml-auto w-9 h-9 rounded-xl bg-[#FFDCE8]/70 text-[#9A2348] flex items-center justify-center cursor-pointer"
                         >
@@ -1171,7 +1280,10 @@ export function AdminDashboard({
                 </div>
                 <button
                   type="button"
-                  onClick={() => setUserFormOpen(true)}
+                  onClick={() => {
+                    setUserError('');
+                    setUserFormOpen(true);
+                  }}
                   className="px-5 py-2.5 rounded-xl bg-[#54BCEB] text-sm font-bold inline-flex items-center gap-2 cursor-pointer"
                 >
                   <Plus className="w-4 h-4" />
@@ -1260,6 +1372,14 @@ export function AdminDashboard({
                   onSubmit={handleAddUser}
                   className="bg-white rounded-3xl p-6 border border-[#EFE7D6] grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
                 >
+                  {userError && (
+                    <div
+                      role="alert"
+                      className="sm:col-span-2 lg:col-span-3 rounded-xl bg-[#FFDCE8] px-4 py-2.5 text-sm font-medium text-[#7A1C3D]"
+                    >
+                      {userError}
+                    </div>
+                  )}
                   <input
                     type="text"
                     required
@@ -1272,7 +1392,10 @@ export function AdminDashboard({
                     type="email"
                     required
                     value={userEmail}
-                    onChange={(e) => setUserEmail(e.target.value)}
+                    onChange={(e) => {
+                      setUserEmail(e.target.value);
+                      if (userError) setUserError('');
+                    }}
                     placeholder="Email"
                     className="px-3.5 py-2.5 rounded-xl border border-[#D8D0BE] text-sm"
                   />
@@ -1301,13 +1424,17 @@ export function AdminDashboard({
                   <div className="flex items-center gap-2">
                     <button
                       type="submit"
-                      className="flex-1 py-2.5 rounded-xl bg-[#71C98A] font-bold text-sm cursor-pointer"
+                      disabled={savingUser}
+                      className="flex-1 py-2.5 rounded-xl bg-[#71C98A] font-bold text-sm cursor-pointer disabled:opacity-60"
                     >
-                      Simpan
+                      {savingUser ? 'Menyimpan...' : 'Simpan'}
                     </button>
                     <button
                       type="button"
-                      onClick={() => setUserFormOpen(false)}
+                      onClick={() => {
+                        setUserFormOpen(false);
+                        setUserError('');
+                      }}
                       className="px-4 py-2.5 rounded-xl bg-[#FFF8E9] font-bold text-sm cursor-pointer"
                     >
                       Batal
@@ -1359,9 +1486,13 @@ export function AdminDashboard({
                               <button
                                 type="button"
                                 onClick={async () => {
-                                  await api.deleteUser(u.id);
-                                  await onRefresh();
-                                  notify('Pengguna dihapus.');
+                                  try {
+                                    await api.deleteUser(u.id);
+                                    await onRefresh();
+                                    notify('Pengguna dihapus.');
+                                  } catch (err) {
+                                    notifyError(err, 'Gagal menghapus pengguna.');
+                                  }
                                 }}
                                 aria-label={`Hapus ${u.name}`}
                                 className="px-3 py-1.5 rounded-lg bg-[#FFDCE8]/70 text-[#9A2348] text-xs font-bold cursor-pointer"

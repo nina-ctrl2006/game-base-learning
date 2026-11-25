@@ -33,21 +33,23 @@ export class ApiRequestError extends Error {
 }
 
 const SESSION_KEY = 'om_current_user_id';
+let inMemoryUserId = '';
 
 export function getStoredUserId(): string {
   try {
-    return localStorage.getItem(SESSION_KEY) || '';
+    return localStorage.getItem(SESSION_KEY) || inMemoryUserId;
   } catch {
-    return '';
+    return inMemoryUserId;
   }
 }
 
 export function setStoredUserId(userId: string): void {
+  inMemoryUserId = userId;
   try {
     if (userId) localStorage.setItem(SESSION_KEY, userId);
     else localStorage.removeItem(SESSION_KEY);
   } catch {
-    // Ignore storage restriction
+    // Ignore storage restriction; inMemoryUserId preserves active session
   }
 }
 
@@ -63,7 +65,10 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(url, { ...options, headers });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    const errBody = data as { error?: string; requiresAdminCode?: boolean };
+    const errBody = data as {
+      error?: string;
+      requiresAdminCode?: boolean;
+    };
     throw new ApiRequestError(
       errBody.error || `Permintaan gagal (${res.status})`,
       errBody.requiresAdminCode

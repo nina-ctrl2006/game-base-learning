@@ -7,7 +7,7 @@ import {
   validateNewAdminAccessCode,
 } from './authRules';
 
-test('siswa role bypasses admin access code gate', () => {
+test('siswa role bypasses admin access code gate and logs in with password only', () => {
   const res = validateAdminLoginGate('siswa', undefined, 'GURU2026');
   assert.equal(res.allowed, true);
 });

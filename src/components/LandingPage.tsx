@@ -8,6 +8,7 @@ import {
   FileSearch,
   Gamepad2,
   GraduationCap,
+  Lock,
   ShieldCheck,
   Users,
 } from 'lucide-react';
@@ -19,7 +20,6 @@ interface LandingPageProps {
   gamesCount: number;
   materials: Material[];
   onOpenAuth: (mode?: 'login' | 'admin' | 'register') => void;
-  onQuickDemoLogin: (role: 'admin' | 'siswa') => void;
 }
 
 export function LandingPage({
@@ -27,7 +27,6 @@ export function LandingPage({
   gamesCount,
   materials,
   onOpenAuth,
-  onQuickDemoLogin,
 }: LandingPageProps) {
   const missionCards = [
     {
@@ -142,9 +141,10 @@ export function LandingPage({
                   <button
                     type="button"
                     data-start="true"
-                    onClick={() => onQuickDemoLogin('siswa')}
+                    onClick={() => onOpenAuth('login')}
                     className="inline-flex items-center gap-2 px-6 py-3.5 rounded-2xl bg-[#FFCA65] hover:bg-[#F5BC4E] text-[#182230] font-bold text-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer shadow-sm"
                   >
+                    <Lock className="w-4 h-4" />
                     <span>Mulai Bermain sebagai Siswa</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
@@ -153,6 +153,7 @@ export function LandingPage({
                     onClick={() => onOpenAuth('admin')}
                     className="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-[#EDF8FD] hover:bg-[#DDF2FB] text-[#182230] font-semibold text-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                   >
+                    <ShieldCheck className="w-4 h-4 text-[#6D3B9E]" />
                     <span>Masuk Dashboard Guru / Admin</span>
                   </button>
                 </div>
@@ -231,7 +232,7 @@ export function LandingPage({
             </div>
             <button
               type="button"
-              onClick={() => onQuickDemoLogin('siswa')}
+              onClick={() => onOpenAuth('login')}
               className="text-sm font-semibold text-[#2B8CBE] hover:underline whitespace-nowrap shrink-0 cursor-pointer"
             >
               Lihat semua {materials.length} materi tersedia →

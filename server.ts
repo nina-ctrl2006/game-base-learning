@@ -22,7 +22,7 @@ import type {
 } from './src/types.ts';
 
 const app = express();
-const PORT = 3000;
+const PORT = Number(process.env.PORT) || 3000;
 
 app.use(express.json({ limit: '25mb' }));
 
@@ -81,19 +81,23 @@ app.post('/api/auth/login', (req, res) => {
     return;
   }
   const db = loadDatabase();
+  const normalizedEmail = email.trim().toLowerCase();
+  const trimmedPassword = password.trim();
   const user = db.users.find(
-    (u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password
+    (u) =>
+      u.email.toLowerCase() === normalizedEmail &&
+      (u.password === password || u.password === trimmedPassword)
   );
   if (!user) {
     res.status(401).json({ error: 'Email atau kata sandi tidak sesuai.' });
     return;
   }
 
-  const gate = validateAdminLoginGate(user.role, adminCode, db.adminAccessCode);
-  if (!gate.allowed) {
+  const adminGate = validateAdminLoginGate(user.role, adminCode, db.adminAccessCode);
+  if (!adminGate.allowed) {
     res.status(403).json({
-      error: gate.error,
-      requiresAdminCode: gate.requiresAdminCode,
+      error: adminGate.error,
+      requiresAdminCode: adminGate.requiresAdminCode,
     });
     return;
   }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Eye, EyeOff, KeyRound, Lock, LogIn, ShieldCheck, UserPlus, X } from 'lucide-react';
 import { AVATAR_OPTIONS, DetectiveAvatar } from './Avatars';
 import { ApiRequestError, api } from '../utils/api';
@@ -17,12 +17,18 @@ export function AuthModal({ initialMode, onClose, onSuccess }: AuthModalProps) {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [adminCode, setAdminCode] = useState('');
   const [showAdminCode, setShowAdminCode] = useState(false);
   const [institution, setInstitution] = useState('');
   const [avatarId, setAvatarId] = useState('detective_blue');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setMode(initialMode);
+    setError('');
+  }, [initialMode]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -64,19 +70,6 @@ export function AuthModal({ initialMode, onClose, onSuccess }: AuthModalProps) {
     }
   }
 
-  async function handleStudentDemo() {
-    setError('');
-    setLoading(true);
-    try {
-      const res = await api.login('siswa@officemystery.id', 'siswa123');
-      onSuccess(res.user);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Gagal masuk akun demo.');
-    } finally {
-      setLoading(false);
-    }
-  }
-
   function switchMode(nextMode: AuthModalMode) {
     setMode(nextMode);
     setError('');
@@ -84,12 +77,12 @@ export function AuthModal({ initialMode, onClose, onSuccess }: AuthModalProps) {
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[#182230]/40 p-4 overflow-y-auto"
+      className="fixed inset-0 z-50 flex justify-center bg-[#182230]/40 p-4 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby="auth-modal-title"
     >
-      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border border-[#EFE7D6] p-6 sm:p-8 relative">
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-xl border border-[#EFE7D6] p-6 sm:p-8 relative my-auto">
         <button
           type="button"
           onClick={onClose}
@@ -105,14 +98,14 @@ export function AuthModal({ initialMode, onClose, onSuccess }: AuthModalProps) {
               ? 'Masuk Guru / Admin'
               : mode === 'register'
                 ? 'Daftar Akun Siswa'
-                : 'Masuk ke Office Mystery'}
+                : 'Masuk Ruang Siswa'}
           </h2>
           <p className="text-sm text-[#516072] mt-1">
             {mode === 'admin'
               ? 'Akses khusus pengelola materi & simulasi. Memerlukan Kode Khusus Guru / Admin agar siswa tidak salah masuk.'
               : mode === 'register'
-                ? 'Buat akun baru untuk menyimpan progres belajar dan skor misi Anda.'
-                : 'Masuk sebagai Siswa / Pemain untuk mempelajari materi dan memainkan misi.'}
+                ? 'Daftarkan akun siswa Anda. Data & kata sandi akan tersimpan untuk login berikutnya.'
+                : 'Masuk menggunakan Email & Kata Sandi akun siswa yang sudah Anda daftarkan.'}
           </p>
         </div>
 
@@ -122,7 +115,7 @@ export function AuthModal({ initialMode, onClose, onSuccess }: AuthModalProps) {
             type="button"
             onClick={() => switchMode('login')}
             className={`py-2 px-2 text-xs sm:text-sm font-semibold rounded-lg transition-colors cursor-pointer ${
-              mode === 'login' ? 'bg-white text-[#182230] shadow-sm' : 'text-[#516072]'
+              mode === 'login' ? 'bg-[#EDF8FD] text-[#182230] shadow-sm' : 'text-[#516072]'
             }`}
           >
             Masuk Siswa
@@ -147,16 +140,42 @@ export function AuthModal({ initialMode, onClose, onSuccess }: AuthModalProps) {
           </button>
         </div>
 
-        {mode === 'admin' && (
+        {mode === 'admin' ? (
           <div className="mb-4 rounded-2xl bg-[#F5EEFC] border border-[#BB8AE8]/40 px-4 py-3 flex items-start gap-3">
             <ShieldCheck className="w-5 h-5 text-[#6D3B9E] shrink-0 mt-0.5" />
             <div className="text-xs text-[#3C2258] leading-relaxed">
               <p className="font-bold">Gerbang Khusus Guru &amp; Admin</p>
               <p className="mt-0.5">
-                Jika Anda adalah siswa yang tidak sengaja menekan tombol Guru / Admin, silakan{' '}
+                Masukkan Email, Kata Sandi, serta Kode Khusus Guru / Admin (dapat dilihat &amp; diubah melalui Dashboard Admin → Keamanan Akses). Siswa yang salah menekan tombol dapat{' '}
                 <button type="button" onClick={() => switchMode('login')} className="font-bold underline cursor-pointer">
                   kembali ke tab Masuk Siswa
                 </button>.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-4 rounded-2xl bg-[#EDF8FD] border border-[#54BCEB]/50 px-4 py-3 flex items-start gap-3">
+            <Lock className="w-5 h-5 text-[#1E6F96] shrink-0 mt-0.5" />
+            <div className="text-xs text-[#183B4E] leading-relaxed">
+              <p className="font-bold">
+                {mode === 'register' ? 'Buat Akun Siswa Pribadi' : 'Login Akun Siswa Terdaftar'}
+              </p>
+              <p className="mt-0.5">
+                {mode === 'register' ? (
+                  <>
+                    Akun dan kata sandi Anda langsung tersimpan tanpa kode khusus. Sudah punya akun?{' '}
+                    <button type="button" onClick={() => switchMode('login')} className="font-bold underline cursor-pointer">
+                      Masuk di sini
+                    </button>.
+                  </>
+                ) : (
+                  <>
+                    Masuk memakai Email &amp; Kata Sandi yang sudah didaftarkan (tanpa kode khusus). Belum punya akun?{' '}
+                    <button type="button" onClick={() => switchMode('register')} className="font-bold underline cursor-pointer">
+                      Daftar Baru
+                    </button>.
+                  </>
+                )}
               </p>
             </div>
           </div>
@@ -228,7 +247,7 @@ export function AuthModal({ initialMode, onClose, onSuccess }: AuthModalProps) {
 
           <div>
             <label htmlFor="auth-email" className="block text-sm font-medium text-[#182230] mb-1">
-              {mode === 'admin' ? 'Email Guru / Admin' : 'Email'}
+              {mode === 'admin' ? 'Email Guru / Admin' : 'Email Siswa'}
             </label>
             <input
               id="auth-email"
@@ -236,7 +255,7 @@ export function AuthModal({ initialMode, onClose, onSuccess }: AuthModalProps) {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder={mode === 'admin' ? 'guru@sekolah.id' : 'nama@sekolah.id'}
+              placeholder={mode === 'admin' ? 'admin@officemystery.id' : 'nama@sekolah.id'}
               className="w-full px-4 py-2.5 rounded-xl border border-[#D8D0BE] bg-white text-sm focus:border-[#54BCEB] outline-none"
             />
           </div>
@@ -245,15 +264,29 @@ export function AuthModal({ initialMode, onClose, onSuccess }: AuthModalProps) {
             <label htmlFor="auth-pass" className="block text-sm font-medium text-[#182230] mb-1">
               Kata Sandi
             </label>
-            <input
-              id="auth-pass"
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Masukkan kata sandi"
-              className="w-full px-4 py-2.5 rounded-xl border border-[#D8D0BE] bg-white text-sm focus:border-[#54BCEB] outline-none"
-            />
+            <div className="relative">
+              <input
+                id="auth-pass"
+                type={showPassword ? 'text' : 'password'}
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder={
+                  mode === 'register'
+                    ? 'Buat kata sandi untuk akun Anda'
+                    : 'Masukkan kata sandi'
+                }
+                className="w-full pl-4 pr-11 py-2.5 rounded-xl border border-[#D8D0BE] bg-white text-sm focus:border-[#54BCEB] outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Sembunyikan kata sandi' : 'Tampilkan kata sandi'}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-lg flex items-center justify-center text-[#516072] hover:bg-[#EFE7D6]/60 cursor-pointer"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
           </div>
 
           {mode === 'admin' && (
@@ -315,35 +348,11 @@ export function AuthModal({ initialMode, onClose, onSuccess }: AuthModalProps) {
                 : mode === 'admin'
                   ? 'Verifikasi & Masuk Dashboard Guru'
                   : mode === 'login'
-                    ? 'Masuk Sekarang'
-                    : 'Buat Akun Siswa'}
+                    ? 'Masuk dengan Email & Sandi'
+                    : 'Daftar & Simpan Akun Siswa'}
             </span>
           </button>
         </form>
-
-        {/* Demo Quick Access (Siswa only so Admin cannot be entered via misclick) */}
-        {mode !== 'admin' && (
-          <div className="mt-6 pt-5 border-t border-[#EFE7D6]">
-            <p className="text-xs font-semibold text-[#516072] flex items-center gap-1.5 mb-3">
-              <Lock className="w-3.5 h-3.5" />
-              <span>Akses Cepat Akun Pengujian Siswa</span>
-            </p>
-            <button
-              type="button"
-              disabled={loading}
-              onClick={() => void handleStudentDemo()}
-              className="w-full px-4 py-2.5 rounded-xl bg-[#EEF9F1] hover:bg-[#DCF3E3] text-[#182230] text-xs font-semibold flex items-center justify-between transition-colors cursor-pointer"
-            >
-              <span>
-                <span className="block font-bold text-left">Siswa / Pemain (Demo)</span>
-                <span className="block text-[11px] text-[#516072] text-left">
-                  siswa@officemystery.id
-                </span>
-              </span>
-              <span className="text-xs font-bold text-[#256D3B]">Masuk Cepat</span>
-            </button>
-          </div>
-        )}
       </div>
     </div>
   );
