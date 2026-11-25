@@ -20,7 +20,7 @@
       "avatarId": "detective_blue",
       "institution": "SMK Negeri 1 Jakarta · MPLB",
       "createdAt": "2026-10-12T09:00:00.000Z",
-      "lastActiveAt": "2026-11-25T05:56:57.379Z"
+      "lastActiveAt": "2026-11-25T06:43:25.731Z"
     },
     {
       "id": "usr_siswa_2",
@@ -970,6 +970,59 @@
   ],
   "attempts": [
     {
+      "materialId": "mat_kearsipan",
+      "materialTitle": "Sistem Kearsipan & Penemuan Dokumen Hilang",
+      "kind": "simulation",
+      "targetId": "game_misi_2",
+      "targetTitle": "Misi 2: Misteri Dokumen Hilang di Ruang Arsip",
+      "score": 10,
+      "maxScore": 100,
+      "percentage": 10,
+      "correctCount": 0,
+      "wrongCount": 3,
+      "durationSeconds": 360,
+      "predikat": "Trainee Administrator",
+      "details": [
+        {
+          "itemId": "ch_m2_1",
+          "title": "Klasifikasi Dokumen ke Folder Arsip",
+          "typeLabel": "Drag & Drop Klasifikasi",
+          "isCorrect": false,
+          "earnedPoints": 10,
+          "maxPoints": 40,
+          "userAnswerSummary": "1 dari 4 dokumen ditempatkan tepat",
+          "correctAnswerSummary": "SK Pengangkatan Staf Baru -> Folder KP · Kepegawaian; Kuitansi Pelunasan Listrik Kantor -> Folder KU · Keuangan; Surat Permohonan Cuti Tahunan -> Folder KP · Kepegawaian; Berita Acara Pembelian Printer Laser -> Folder SP · Sarana Prasarana",
+          "explanation": "SK Pengangkatan masuk ke Arsip Kepegawaian (KP), Kuitansi Pembelian ke Arsip Keuangan (KU), dan Berita Acara Pengadaan Printer ke Sarana Prasarana (SP)."
+        },
+        {
+          "itemId": "ch_m2_2",
+          "title": "Cocokkan Sistem Penyimpanan Arsip",
+          "typeLabel": "Mencocokkan Pasangan",
+          "isCorrect": false,
+          "earnedPoints": 0,
+          "maxPoints": 30,
+          "userAnswerSummary": "0 dari 3 pasangan cocok",
+          "correctAnswerSummary": "Berkas Rekening & Profil Klien Individu = Sistem Abjad (Alfabetis); Faktur Transaksi & Surat Masuk Harian = Sistem Kronologis (Tanggal); Laporan Penjualan Cabang Bandung & Surabaya = Sistem Wilayah (Geografis)",
+          "explanation": "Faktur harian disusun berdasarkan tanggal (Kronologis), berkas nasabah berdasarkan nama (Abjad), dan dokumen cabang daerah berdasarkan Wilayah."
+        },
+        {
+          "itemId": "ch_m2_3",
+          "title": "Urutkan Prosedur Penyimpanan Arsip",
+          "typeLabel": "Mengurutkan Langkah Kerja",
+          "isCorrect": false,
+          "earnedPoints": 0,
+          "maxPoints": 30,
+          "userAnswerSummary": "0 dari 4 urutan tepat",
+          "correctAnswerSummary": "1. Memeriksa tanda siap simpan (release mark) pada surat -> 2. Mengindeks judul atau kata tangkap dokumen -> 3. Memberikan kode klasifikasi arsip pada sudut kanan atas -> 4. Menempatkan surat ke dalam map gantung sesuai kode",
+          "explanation": "Alur standar kearsipan: Periksa kelengkapan surat -> Mengindeks -> Memberi kode klasifikasi -> Menyortir -> Menempatkan di folder laci arsip."
+        }
+      ],
+      "id": "att_3d12bb3f",
+      "userId": "usr_siswa_1",
+      "userName": "Nisrina Mumtaz",
+      "completedAt": "2026-11-25T06:41:02.405Z"
+    },
+    {
       "id": "att_seed_1",
       "userId": "usr_siswa_1",
       "userName": "Nisrina Mumtaz",
@@ -1061,11 +1114,11 @@
       "userId": "usr_siswa_1",
       "materialId": "mat_kearsipan",
       "materialRead": true,
-      "simulationCompleted": false,
-      "simulationBestScore": 0,
+      "simulationCompleted": true,
+      "simulationBestScore": 10,
       "quizCompleted": false,
       "quizBestScore": 0,
-      "updatedAt": "2026-11-19T10:00:00.000Z"
+      "updatedAt": "2026-11-25T06:41:02.405Z"
     },
     {
       "userId": "usr_siswa_2",
@@ -1089,6 +1142,15 @@
     }
   ],
   "activities": [
+    {
+      "id": "act_76d95a94",
+      "userId": "usr_siswa_1",
+      "userName": "Nisrina Mumtaz",
+      "userRole": "siswa",
+      "action": "Menyelesaikan Simulasi (Skor 10%)",
+      "targetTitle": "Misi 2: Misteri Dokumen Hilang di Ruang Arsip",
+      "timestamp": "2026-11-25T06:41:02.405Z"
+    },
     {
       "id": "act_823e1c4d",
       "userId": "usr_7d842fca",

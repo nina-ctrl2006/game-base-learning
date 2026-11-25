@@ -80,3 +80,58 @@ test('getVisualSceneSummary reports live status and tones accurately', () => {
   assert.equal(verified.statusLabel, 'Terverifikasi Tepat');
   assert.equal(verified.statusTone, 'success');
 });
+
+import {
+  applySmartScanner,
+  calculateSpeedBonus,
+  computeOfficeIntegrity,
+  getNpcDispatch,
+} from './simulatorHelpers';
+
+test('computeOfficeIntegrity tracks office reputation across checked cases', () => {
+  assert.deepEqual(computeOfficeIntegrity([]), { percentage: 100, label: 'Prima' });
+  assert.deepEqual(computeOfficeIntegrity([false, false]), { percentage: 56, label: 'Waspada' });
+  assert.deepEqual(computeOfficeIntegrity([false, false, false, false]), {
+    percentage: 20,
+    label: 'Kritis',
+  });
+  assert.deepEqual(computeOfficeIntegrity([false, true, true]), {
+    percentage: 98,
+    label: 'Prima',
+  });
+});
+
+test('getNpcDispatch returns contextual NPC reactions', () => {
+  const initial = getNpcDispatch(sampleChallenges[1], {
+    isChecked: false,
+    answered: false,
+    streak: 0,
+  });
+  assert.equal(initial.npcName, 'Pak Hendra');
+  assert.equal(initial.mood, 'info');
+
+  const comboWin = getNpcDispatch(sampleChallenges[0], {
+    isChecked: true,
+    isCorrect: true,
+    answered: true,
+    streak: 3,
+  });
+  assert.equal(comboWin.mood, 'success');
+  assert.match(comboWin.message, /Kombo x3/);
+});
+
+test('applySmartScanner produces valid tactical assists across challenge types', () => {
+  const mcScan = applySmartScanner(sampleChallenges[0], undefined);
+  assert.deepEqual(mcScan.eliminatedOptionIndices, [0]);
+
+  const errScan = applySmartScanner(sampleChallenges[1], ['r2']);
+  assert.equal(errScan.flaggedErrorRowId, 'r3');
+});
+
+test('calculateSpeedBonus rewards fast accurate completion', () => {
+  assert.equal(calculateSpeedBonus(10, true), 10);
+  assert.equal(calculateSpeedBonus(25, true), 5);
+  assert.equal(calculateSpeedBonus(45, true), 0);
+  assert.equal(calculateSpeedBonus(8, false), 0);
+});
+

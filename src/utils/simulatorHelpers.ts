@@ -243,3 +243,306 @@ export function getVisualSceneSummary(
     }
   }
 }
+
+export interface OfficeIntegrityState {
+  percentage: number;
+  label: 'Prima' | 'Waspada' | 'Kritis';
+}
+
+export function computeOfficeIntegrity(
+  checkedResults: boolean[]
+): OfficeIntegrityState {
+  let score = 100;
+  for (const isCorrect of checkedResults) {
+    if (isCorrect) {
+      score = Math.min(100, score + 10);
+    } else {
+      score = Math.max(20, score - 22);
+    }
+  }
+  const label: OfficeIntegrityState['label'] =
+    score >= 80 ? 'Prima' : score >= 50 ? 'Waspada' : 'Kritis';
+  return { percentage: score, label };
+}
+
+export interface NpcDispatch {
+  npcName: string;
+  npcRole: string;
+  npcAvatarId: string;
+  message: string;
+  replyClue: string;
+  mood: 'info' | 'active' | 'success' | 'warning';
+}
+
+export function getNpcDispatch(
+  challenge: Challenge,
+  context: {
+    isChecked: boolean;
+    isCorrect?: boolean;
+    answered: boolean;
+    streak: number;
+  }
+): NpcDispatch {
+  const personaByType: Record<
+    Challenge['type'],
+    { name: string; role: string; avatar: string; opener: string; clue: string }
+  > = {
+    drag_and_drop: {
+      name: 'Bu Laras',
+      role: 'Kepala Unit Kearsipan',
+      avatar: 'detective_mint',
+      opener:
+        'Tumpukan berkas baru saja tiba di meja sortir! Tolong pisahkan ke laci map yang tepat sebelum jam audit.',
+      clue: 'Lihat kode divisi atau jenis transaksi di sub-label tiap berkas sebelum memasukkannya ke laci.',
+    },
+    find_the_error: {
+      name: 'Pak Hendra',
+      role: 'Auditor Data Kantor',
+      avatar: 'detective_yellow',
+      opener:
+        'Ada laporan selisih data masuk di tabel pusat! Tandai semua baris yang ganjil dengan pemindai audit.',
+      clue: 'Bandingkan kolom identitas (NIP/kode) dan hitung ulang selisih jumlah catatan vs kondisi fisik.',
+    },
+    matching: {
+      name: 'Raka Pratama',
+      role: 'Koordinator Sistem Arsip',
+      avatar: 'detective_blue',
+      opener:
+        'Kabel indeks sistem penyimpanan sedang terputus! Sambungkan setiap berkas ke jalur metode yang benar.',
+      clue: 'Perhatikan kata kunci: tanggal (kronologis), kota/cabang (wilayah), atau nama (abjad).',
+    },
+    ordering: {
+      name: 'Bu Laras',
+      role: 'Kepala Unit Kearsipan',
+      avatar: 'detective_mint',
+      opener:
+        'Alur SOP di ruang administrasi sempat tertukar! Susun ulang stasiun kerja dari tahap ke-1 sampai akhir.',
+      clue: 'SOP kantor selalu berurutan dari penerimaan/verifikasi awal, pencatatan indeks, hingga penyimpanan.',
+    },
+    decision_making: {
+      name: 'Sinta Wijaya',
+      role: 'Manajer Keamanan Informasi',
+      avatar: 'detective_purple',
+      opener:
+        'Situasi genting di ruang kontrol! Keputusan Anda akan langsung memengaruhi keamanan dan integritas data kantor.',
+      clue: 'Selalu utamakan verifikasi resmi, prinsip hak akses minimum, dan jalur eskalasi atasan.',
+    },
+    case_simulation: {
+      name: 'Dina Kusuma',
+      role: 'Sekretaris Direksi',
+      avatar: 'detective_mentor',
+      opener:
+        `Memo mendesak baru masuk dari ${challenge.dossierSender || 'Unit Terkait'}. Periksa isinya sebelum memberi disposisi!`,
+      clue: 'Cocokkan inti masalah pada memo dengan tindakan administratif yang paling akuntabel.',
+    },
+    true_false: {
+      name: 'Pak Hendra',
+      role: 'Auditor Data Kantor',
+      avatar: 'detective_yellow',
+      opener:
+        'Ada pernyataan prosedur yang beredar di grup staf. Pastikan apakah pernyataan itu sah secara SOP atau justru berisiko!',
+      clue: 'Jika suatu tindakan membuka celah kebocoran data atau melewatkan pencatatan resmi, nilainya SALAH.',
+    },
+    multiple_choice: {
+      name: 'Dina Kusuma',
+      role: 'Sekretaris Direksi',
+      avatar: 'detective_mentor',
+      opener:
+        'Kasus operasional butuh keputusan cepat dan akurat. Analisis bukti di layar lalu pilih langkah terbaik!',
+      clue: 'Eliminasi opsi yang terburu-buru atau tidak terdokumentasi secara resmi.',
+    },
+  };
+
+  const p = personaByType[challenge.type];
+
+  if (context.isChecked) {
+    if (context.isCorrect) {
+      return {
+        npcName: p.name,
+        npcRole: p.role,
+        npcAvatarId: p.avatar,
+        message:
+          context.streak >= 2
+            ? `Mantap! Berkas tertangani mulus dengan Kombo x${context.streak}. Tim kantor makin percaya pada ketelitian Anda!`
+            : 'Kerja rapi! Kasus ini terselesaikan sesuai standar SOP kantor.',
+        replyClue: p.clue,
+        mood: 'success',
+      };
+    }
+    return {
+      npcName: p.name,
+      npcRole: p.role,
+      npcAvatarId: p.avatar,
+      message:
+        'Ups, ada catatan koreksi dari tim audit! Pelajari pembahasannya sebentar agar kasus berikutnya lebih akurat.',
+      replyClue: p.clue,
+      mood: 'warning',
+    };
+  }
+
+  if (context.answered) {
+    return {
+      npcName: p.name,
+      npcRole: p.role,
+      npcAvatarId: p.avatar,
+      message:
+        'Pilihan sudah terpasang di meja kerja. Jika sudah yakin, tekan "Periksa & Stempel Kasus" sekarang!',
+      replyClue: p.clue,
+      mood: 'active',
+    };
+  }
+
+  return {
+    npcName: p.name,
+    npcRole: p.role,
+    npcAvatarId: p.avatar,
+    message: p.opener,
+    replyClue: p.clue,
+    mood: 'info',
+  };
+}
+
+export interface SmartScanResult {
+  eliminatedOptionIndices: number[];
+  eliminatedChoiceIds: string[];
+  flaggedErrorRowId?: string;
+  revealedDragItem?: { itemId: string; zoneId: string };
+  revealedPair?: { pairId: string; right: string };
+  lockedFirstStepId?: string;
+  scanMessage: string;
+}
+
+export function applySmartScanner(
+  challenge: Challenge,
+  currentAnswer: unknown
+): SmartScanResult {
+  switch (challenge.type) {
+    case 'multiple_choice':
+    case 'case_simulation': {
+      const opts = challenge.options ?? [];
+      const correctIdx = challenge.correctIndex ?? 0;
+      const wrongIndices = opts
+        .map((_, idx) => idx)
+        .filter((idx) => idx !== correctIdx)
+        .slice(0, opts.length >= 4 ? 2 : 1);
+      return {
+        eliminatedOptionIndices: wrongIndices,
+        eliminatedChoiceIds: [],
+        scanMessage: `Pemindai Cerdas menyingkirkan ${wrongIndices.length} opsi yang tidak sesuai SOP!`,
+      };
+    }
+    case 'decision_making': {
+      const choices = challenge.choices ?? [];
+      const wrongChoiceIds = choices
+        .filter((c) => !c.isOptimal && c.scoreRatio < 1)
+        .sort((a, b) => a.scoreRatio - b.scoreRatio)
+        .slice(0, 1)
+        .map((c) => c.id);
+      return {
+        eliminatedOptionIndices: [],
+        eliminatedChoiceIds: wrongChoiceIds,
+        scanMessage:
+          'Pemindai Risiko menandai 1 opsi keputusan yang berisiko tinggi bagi kantor!',
+      };
+    }
+    case 'find_the_error': {
+      const selected = new Set(Array.isArray(currentAnswer) ? (currentAnswer as string[]) : []);
+      const unflaggedError = (challenge.rows ?? []).find(
+        (r) => r.isError && !selected.has(r.id)
+      );
+      if (unflaggedError) {
+        return {
+          eliminatedOptionIndices: [],
+          eliminatedChoiceIds: [],
+          flaggedErrorRowId: unflaggedError.id,
+          scanMessage: `Pemindai Audit menemukan 1 baris anomali: "${unflaggedError.cells[0] || unflaggedError.id}"!`,
+        };
+      }
+      return {
+        eliminatedOptionIndices: [],
+        eliminatedChoiceIds: [],
+        scanMessage: 'Semua baris bermasalah sudah ditandai pada tabel audit!',
+      };
+    }
+    case 'drag_and_drop': {
+      const currentMap =
+        currentAnswer && typeof currentAnswer === 'object'
+          ? (currentAnswer as Record<string, string>)
+          : {};
+      const nextItem = (challenge.items ?? []).find(
+        (item) => currentMap[item.id] !== item.correctZoneId
+      );
+      if (nextItem) {
+        return {
+          eliminatedOptionIndices: [],
+          eliminatedChoiceIds: [],
+          revealedDragItem: { itemId: nextItem.id, zoneId: nextItem.correctZoneId },
+          scanMessage: `Asisten Sortir memasukkan "${nextItem.label}" ke laci yang tepat!`,
+        };
+      }
+      return {
+        eliminatedOptionIndices: [],
+        eliminatedChoiceIds: [],
+        scanMessage: 'Semua dokumen sudah berada di laci yang benar!',
+      };
+    }
+    case 'matching': {
+      const currentMap =
+        currentAnswer && typeof currentAnswer === 'object'
+          ? (currentAnswer as Record<string, string>)
+          : {};
+      const nextPair = (challenge.pairs ?? []).find(
+        (pair) => currentMap[pair.id] !== pair.right
+      );
+      if (nextPair) {
+        return {
+          eliminatedOptionIndices: [],
+          eliminatedChoiceIds: [],
+          revealedPair: { pairId: nextPair.id, right: nextPair.right },
+          scanMessage: `Kabel Data menghubungkan "${nextPair.left}" dengan pasangannya!`,
+        };
+      }
+      return {
+        eliminatedOptionIndices: [],
+        eliminatedChoiceIds: [],
+        scanMessage: 'Seluruh jalur pasangan sudah tersambung dengan tepat!',
+      };
+    }
+    case 'ordering': {
+      const steps = challenge.steps ?? [];
+      if (steps.length > 0) {
+        return {
+          eliminatedOptionIndices: [],
+          eliminatedChoiceIds: [],
+          lockedFirstStepId: steps[0].id,
+          scanMessage: `Pemindai SOP menempatkan tahap ke-1: "${steps[0].text}"!`,
+        };
+      }
+      return {
+        eliminatedOptionIndices: [],
+        eliminatedChoiceIds: [],
+        scanMessage: 'Urutan SOP siap diperiksa.',
+      };
+    }
+    case 'true_false':
+    default: {
+      const hintLabel = challenge.correctAnswer ? 'BENAR' : 'SALAH';
+      return {
+        eliminatedOptionIndices: [],
+        eliminatedChoiceIds: [],
+        scanMessage: `Petunjuk Pemindai: Berdasarkan audit SOP, pernyataan ini condong ke "${hintLabel}".`,
+      };
+    }
+  }
+}
+
+export function calculateSpeedBonus(
+  caseElapsedSeconds: number,
+  isCorrect: boolean
+): number {
+  if (!isCorrect) return 0;
+  if (caseElapsedSeconds <= 15) return 10;
+  if (caseElapsedSeconds <= 30) return 5;
+  return 0;
+}
+

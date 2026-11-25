@@ -16,18 +16,26 @@ import {
   Lightbulb,
   Link2,
   Mail,
+  Pause,
   Play,
+  RotateCcw,
   ShieldAlert,
+  ShieldCheck,
+  Snowflake,
   Sparkles,
+  Stamp,
   Trophy,
   Unlink,
   Volume2,
   VolumeX,
   XCircle,
+  Zap,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'motion/react';
 import { DetectiveAvatar, SafeImage } from './Avatars';
 import { OfficeSceneVisualizer } from './OfficeSceneVisualizer';
+import { OfficeDispatchBar } from './OfficeDispatchBar';
+import { OfficeFloorCanvas } from './OfficeFloorCanvas';
 import {
   CHALLENGE_TYPE_META,
   evaluateChallenge,
@@ -36,18 +44,26 @@ import {
   shuffleWithSeed,
 } from '../utils/gameLogic';
 import {
+  applySmartScanner,
+  calculateSpeedBonus,
   computeLiveSimulationStats,
+  computeOfficeIntegrity,
   getChallengeHint,
+  getNpcDispatch,
   getStreakReaction,
   isChallengeAnswered,
+  type SmartScanResult,
 } from '../utils/simulatorHelpers';
 import {
   isSoundMuted,
   playClickSfx,
   playCorrectSfx,
+  playFreezeSfx,
   playHintSfx,
   playMissionCompleteSfx,
+  playPowerUpSfx,
   playSnapSfx,
+  playStampSfx,
   playWrongSfx,
   setSoundMuted,
 } from '../utils/soundFx';
@@ -149,15 +165,23 @@ export function GameSimulator({
   const [hintOpenMap, setHintOpenMap] = useState<Record<string, boolean>>({});
   const [secondsLeft, setSecondsLeft] = useState(game.timerSeconds || 300);
   const [elapsedSeconds, setElapsedSeconds] = useState(0);
+  const [caseElapsedMap, setCaseElapsedMap] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
 
   // Gamification & juice state
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
+  const [speedBonusTotal, setSpeedBonusTotal] = useState(0);
+  const [scanCharges, setScanCharges] = useState(1);
+  const [freezeCharges, setFreezeCharges] = useState(1);
+  const [freezeSecondsLeft, setFreezeSecondsLeft] = useState(0);
+  const [scanResultsMap, setScanResultsMap] = useState<Record<string, SmartScanResult>>({});
   const [burstKey, setBurstKey] = useState(0);
   const [floatingPoints, setFloatingPoints] = useState<{
     key: number;
     amount: number;
+    bonus?: number;
     isCorrect: boolean;
   } | null>(null);
   const [muted, setMuted] = useState<boolean>(() => isSoundMuted());
@@ -176,13 +200,33 @@ export function GameSimulator({
     [sortedChallenges, answers, checkedMap]
   );
 
+  const officeIntegrity = useMemo(() => {
+    const checkedResults = sortedChallenges
+      .filter((ch) => checkedMap[ch.id])
+      .map((ch) => evaluateChallenge(ch, answers[ch.id]).isCorrect);
+    return computeOfficeIntegrity(checkedResults);
+  }, [sortedChallenges, checkedMap, answers]);
+
+  const { correctMap, answeredMap } = useMemo(() => {
+    const cMap: Record<string, boolean> = {};
+    const aMap: Record<string, boolean> = {};
+    for (const ch of sortedChallenges) {
+      aMap[ch.id] = isChallengeAnswered(ch, answers[ch.id]);
+      if (checkedMap[ch.id]) {
+        cMap[ch.id] = evaluateChallenge(ch, answers[ch.id]).isCorrect;
+      }
+    }
+    return { correctMap: cMap, answeredMap: aMap };
+  }, [sortedChallenges, answers, checkedMap]);
+
   // Sync body dataset state for playability/testing
   useEffect(() => {
-    document.body.dataset.state = phase === 'briefing' ? 'title' : 'playing';
+    document.body.dataset.state =
+      phase === 'briefing' ? 'title' : isPaused ? 'paused' : 'playing';
     return () => {
       delete document.body.dataset.state;
     };
-  }, [phase]);
+  }, [phase, isPaused]);
 
   // Keyboard start handshake on briefing screen (Enter / Space)
   useEffect(() => {
@@ -198,26 +242,42 @@ export function GameSimulator({
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [phase]);
 
-  // Countdown timer (only ticks while playing)
+  // Countdown timer & per-case timer (pauses when paused or frozen)
   useEffect(() => {
-    if (phase !== 'playing' || sortedChallenges.length === 0) return;
+    if (phase !== 'playing' || isPaused || sortedChallenges.length === 0) return;
+    const activeId = currentChallenge?.id;
+    const isCurrentChecked = activeId ? Boolean(checkedMap[activeId]) : true;
+
     const timer = window.setInterval(() => {
       setElapsedSeconds((prev) => prev + 1);
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          window.clearInterval(timer);
-          return 0;
+      if (activeId && !isCurrentChecked) {
+        setCaseElapsedMap((prev) => ({
+          ...prev,
+          [activeId]: (prev[activeId] ?? 0) + 1,
+        }));
+      }
+      setFreezeSecondsLeft((prevFreeze) => {
+        if (prevFreeze > 0) {
+          return prevFreeze - 1;
         }
-        return prev - 1;
+        setSecondsLeft((prev) => {
+          if (prev <= 1) {
+            window.clearInterval(timer);
+            return 0;
+          }
+          return prev - 1;
+        });
+        return 0;
       });
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [phase, sortedChallenges.length]);
+  }, [phase, isPaused, sortedChallenges.length, currentChallenge?.id, checkedMap]);
 
   // Auto-submit when timer hits 0
   useEffect(() => {
     if (
       phase === 'playing' &&
+      !isPaused &&
       secondsLeft === 0 &&
       !submitting &&
       sortedChallenges.length > 0
@@ -225,7 +285,7 @@ export function GameSimulator({
       void handleFinishSimulation();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [secondsLeft, phase]);
+  }, [secondsLeft, phase, isPaused]);
 
   // Initialize default shuffled steps when entering an ordering challenge
   useEffect(() => {
@@ -273,6 +333,29 @@ export function GameSimulator({
   function startMission() {
     playSnapSfx();
     setPhase('playing');
+    setIsPaused(false);
+  }
+
+  function handleRestartMission() {
+    playSnapSfx();
+    setCurrentIndex(0);
+    setAnswers({});
+    setCheckedMap({});
+    setHintOpenMap({});
+    setCaseElapsedMap({});
+    setSecondsLeft(game.timerSeconds || 300);
+    setElapsedSeconds(0);
+    setStreak(0);
+    setBestStreak(0);
+    setSpeedBonusTotal(0);
+    setScanCharges(1);
+    setFreezeCharges(1);
+    setFreezeSecondsLeft(0);
+    setScanResultsMap({});
+    setBurstKey(0);
+    setFloatingPoints(null);
+    setIsPaused(false);
+    setPhase('playing');
   }
 
   function updateAnswer(challengeId: string, val: unknown) {
@@ -280,19 +363,78 @@ export function GameSimulator({
     setAnswers((prev) => ({ ...prev, [challengeId]: val }));
   }
 
+  function handleUseSmartScan() {
+    if (!currentChallenge || isChecked || scanCharges <= 0 || scanResultsMap[currentChallenge.id]) {
+      return;
+    }
+    const result = applySmartScanner(currentChallenge, answers[currentChallenge.id]);
+    setScanCharges((c) => Math.max(0, c - 1));
+    setScanResultsMap((prev) => ({ ...prev, [currentChallenge.id]: result }));
+    playPowerUpSfx();
+
+    if (result.flaggedErrorRowId) {
+      const existing = new Set(
+        Array.isArray(answers[currentChallenge.id])
+          ? (answers[currentChallenge.id] as string[])
+          : []
+      );
+      existing.add(result.flaggedErrorRowId);
+      updateAnswer(currentChallenge.id, Array.from(existing));
+    } else if (result.revealedDragItem) {
+      const existing =
+        (answers[currentChallenge.id] as Record<string, string>) || {};
+      updateAnswer(currentChallenge.id, {
+        ...existing,
+        [result.revealedDragItem.itemId]: result.revealedDragItem.zoneId,
+      });
+    } else if (result.revealedPair) {
+      const existing =
+        (answers[currentChallenge.id] as Record<string, string>) || {};
+      const next = { ...existing };
+      for (const k of Object.keys(next)) {
+        if (next[k] === result.revealedPair.right) delete next[k];
+      }
+      next[result.revealedPair.pairId] = result.revealedPair.right;
+      updateAnswer(currentChallenge.id, next);
+    } else if (result.lockedFirstStepId) {
+      const currentOrder =
+        (answers[currentChallenge.id] as string[]) ??
+        (currentChallenge.steps ?? []).map((s) => s.id);
+      const filtered = currentOrder.filter((id) => id !== result.lockedFirstStepId);
+      updateAnswer(currentChallenge.id, [result.lockedFirstStepId, ...filtered]);
+    }
+  }
+
+  function handleUseFreezeTimer() {
+    if (freezeCharges <= 0 || freezeSecondsLeft > 0) return;
+    setFreezeCharges((c) => Math.max(0, c - 1));
+    setFreezeSecondsLeft(15);
+    playFreezeSfx();
+  }
+
   function handleCheckCurrent() {
     if (!currentChallenge || checkedMap[currentChallenge.id]) return;
     const evalRes = evaluateChallenge(currentChallenge, answers[currentChallenge.id]);
     setCheckedMap((prev) => ({ ...prev, [currentChallenge.id]: true }));
+    playStampSfx();
 
     if (evalRes.isCorrect) {
       const nextStreak = streak + 1;
+      const caseSecs = caseElapsedMap[currentChallenge.id] ?? 0;
+      const speedXp = calculateSpeedBonus(caseSecs, true);
       setStreak(nextStreak);
       setBestStreak((prev) => Math.max(prev, nextStreak));
+      if (speedXp > 0) {
+        setSpeedBonusTotal((prev) => prev + speedXp);
+      }
+      if (nextStreak >= 2 && nextStreak % 2 === 0) {
+        setScanCharges((prev) => Math.min(3, prev + 1));
+      }
       setBurstKey((k) => k + 1);
       setFloatingPoints({
         key: Date.now(),
         amount: evalRes.earnedPoints,
+        bonus: speedXp,
         isCorrect: true,
       });
       playCorrectSfx(nextStreak);
@@ -316,6 +458,73 @@ export function GameSimulator({
       [currentChallenge.id]: nextOpen,
     }));
   }
+
+  // Keyboard gameplay shortcuts while playing
+  useEffect(() => {
+    if (phase !== 'playing') return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null;
+      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA')) {
+        return;
+      }
+      if (e.key === 'Escape' || e.key.toLowerCase() === 'p') {
+        e.preventDefault();
+        setIsPaused((prev) => !prev);
+        return;
+      }
+      if (isPaused || !currentChallenge) return;
+
+      if (!isChecked) {
+        if (
+          (currentChallenge.type === 'multiple_choice' ||
+            currentChallenge.type === 'case_simulation') &&
+          ['1', '2', '3', '4'].includes(e.key)
+        ) {
+          const idx = Number(e.key) - 1;
+          const scanRes = scanResultsMap[currentChallenge.id];
+          if (
+            idx < (currentChallenge.options?.length ?? 0) &&
+            !scanRes?.eliminatedOptionIndices.includes(idx)
+          ) {
+            playClickSfx();
+            updateAnswer(currentChallenge.id, idx);
+          }
+        } else if (
+          currentChallenge.type === 'decision_making' &&
+          ['1', '2', '3', '4'].includes(e.key)
+        ) {
+          const idx = Number(e.key) - 1;
+          const choice = currentChallenge.choices?.[idx];
+          const scanRes = scanResultsMap[currentChallenge.id];
+          if (choice && !scanRes?.eliminatedChoiceIds.includes(choice.id)) {
+            playClickSfx();
+            updateAnswer(currentChallenge.id, choice.id);
+          }
+        } else if (
+          currentChallenge.type === 'true_false' &&
+          (e.key === '1' || e.key === '2')
+        ) {
+          playClickSfx();
+          updateAnswer(currentChallenge.id, e.key === '1');
+        }
+      }
+
+      if (e.key === 'Enter' && !e.shiftKey) {
+        const tag = target?.tagName;
+        if (tag === 'BUTTON') return;
+        e.preventDefault();
+        if (!isChecked && isChallengeAnswered(currentChallenge, answers[currentChallenge.id])) {
+          handleCheckCurrent();
+        } else if (isChecked && currentIndex < sortedChallenges.length - 1) {
+          playClickSfx();
+          setCurrentIndex((i) => i + 1);
+        }
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, isPaused, currentChallenge, isChecked, answers, scanResultsMap, currentIndex]);
 
   async function handleFinishSimulation() {
     if (submitting) return;
@@ -553,47 +762,91 @@ export function GameSimulator({
     ? evaluateChallenge(currentChallenge, answers[currentChallenge.id])
     : null;
   const hintOpen = currentChallenge ? Boolean(hintOpenMap[currentChallenge.id]) : false;
+  const activeScanResult = currentChallenge ? scanResultsMap[currentChallenge.id] : undefined;
+  const currentCaseElapsed = currentChallenge ? (caseElapsedMap[currentChallenge.id] ?? 0) : 0;
+  const activeDispatch = currentChallenge
+    ? getNpcDispatch(currentChallenge, {
+        isChecked,
+        isCorrect: currentEval?.isCorrect,
+        answered: isChallengeAnswered(currentChallenge, answers[currentChallenge.id]),
+        streak,
+      })
+    : null;
   const progressPct = Math.round(
     ((liveStats.checkedCount || currentIndex + 1) / sortedChallenges.length) * 100
   );
 
   return (
-    <div className="min-h-screen bg-[#FFF8E9] pb-14" data-state="playing">
+    <div
+      className="min-h-screen bg-[#FFF8E9] pb-14"
+      data-state={isPaused ? 'paused' : 'playing'}
+    >
       {/* Top Interactive Game HUD */}
       <div className="bg-white border-b border-[#EFE7D6] sticky top-0 z-20 shadow-xs">
-        <div className="max-w-[1160px] mx-auto px-4 sm:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+        <div className="max-w-[1240px] mx-auto px-4 sm:px-6 py-2.5 flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex items-center gap-3 min-w-0">
             <button
               type="button"
               onClick={onExit}
-              className="px-3 py-2 rounded-xl bg-[#FFF8E9] hover:bg-[#FFCA65]/40 text-[#182230] text-sm font-semibold inline-flex items-center gap-1.5 cursor-pointer shrink-0"
+              className="px-3 py-2 rounded-xl bg-[#FFF8E9] hover:bg-[#FFCA65]/40 text-[#182230] text-xs sm:text-sm font-semibold inline-flex items-center gap-1.5 cursor-pointer shrink-0"
             >
               <ArrowLeft className="w-4 h-4" />
               <span>{isPreview ? 'Tutup Preview' : 'Keluar Misi'}</span>
             </button>
             <div className="min-w-0">
-              <p className="text-xs font-semibold text-[#2B8CBE] truncate">
+              <p className="text-[11px] font-semibold text-[#2B8CBE] truncate">
                 {isPreview ? 'Mode Preview Admin' : material?.title || 'Simulasi Kantor'}
               </p>
-              <h1 className="font-display text-base sm:text-lg font-bold text-[#182230] truncate">
+              <h1 className="font-display text-sm sm:text-base font-bold text-[#182230] truncate">
                 {game.title}
               </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0 flex-wrap">
-            {/* Live Score Counter */}
-            <div className="relative px-3.5 py-1.5 rounded-xl bg-[#EEF9F1] border border-[#CBEBD4] flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-[#2E854A]" />
+          <div className="flex items-center gap-2 shrink-0 flex-wrap">
+            {/* Office Integrity Meter */}
+            <div
+              data-testid="office-integrity-badge"
+              className={`px-2.5 py-1 rounded-xl border flex items-center gap-1.5 ${
+                officeIntegrity.label === 'Prima'
+                  ? 'bg-[#EEF9F1] border-[#CBEBD4] text-[#182230]'
+                  : officeIntegrity.label === 'Waspada'
+                    ? 'bg-[#FFF7E3] border-[#F6DF9F] text-[#182230]'
+                    : 'bg-[#FFDCE8] border-[#E25C83] text-[#7A1C3D]'
+              }`}
+            >
+              <ShieldCheck
+                className={`w-4 h-4 ${
+                  officeIntegrity.label === 'Prima'
+                    ? 'text-[#2E854A]'
+                    : officeIntegrity.label === 'Waspada'
+                      ? 'text-[#B57B14]'
+                      : 'text-[#B82853]'
+                }`}
+              />
               <div>
-                <span className="block text-[10px] font-semibold uppercase tracking-wide text-[#2E7245]">
+                <span className="block text-[9px] font-semibold uppercase tracking-wide text-[#516072]">
+                  Integritas
+                </span>
+                <span className="font-mono text-xs font-extrabold tabular-nums">
+                  {officeIntegrity.percentage}% · {officeIntegrity.label}
+                </span>
+              </div>
+            </div>
+
+            {/* Live Score Counter */}
+            <div className="relative px-2.5 py-1 rounded-xl bg-[#EDF8FD] border border-[#CBE8F7] flex items-center gap-1.5">
+              <Trophy className="w-4 h-4 text-[#2B8CBE]" />
+              <div>
+                <span className="block text-[9px] font-semibold uppercase tracking-wide text-[#1D6B94]">
                   Skor Live
                 </span>
                 <span
                   data-testid="live-score-value"
-                  className="font-mono text-sm font-extrabold text-[#182230] tabular-nums"
+                  className="font-mono text-xs font-extrabold text-[#182230] tabular-nums whitespace-nowrap"
                 >
-                  {liveStats.earnedPoints} / {liveStats.totalPossiblePoints}
+                  {liveStats.earnedPoints}/{liveStats.totalPossiblePoints}
+                  {speedBonusTotal > 0 ? ` (+${speedBonusTotal} XP)` : ''}
                 </span>
               </div>
 
@@ -605,9 +858,10 @@ export function GameSimulator({
                     animate={{ opacity: 0, y: -26, scale: 1.15 }}
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.9 }}
-                    className="pointer-events-none absolute -top-2 right-1 font-mono text-xs font-extrabold text-[#256D3B] bg-[#71C98A] px-2 py-0.5 rounded-lg shadow-sm"
+                    className="pointer-events-none absolute -top-2 right-1 font-mono text-xs font-extrabold text-[#182230] bg-[#71C98A] px-2 py-0.5 rounded-lg shadow-sm"
                   >
                     +{floatingPoints.amount}
+                    {floatingPoints.bonus ? ` (+${floatingPoints.bonus} Kilat)` : ''}
                   </motion.span>
                 )}
               </AnimatePresence>
@@ -629,23 +883,47 @@ export function GameSimulator({
                 <span className="block text-[10px] font-semibold uppercase tracking-wide">
                   Kombo
                 </span>
-                <span className="font-mono text-sm font-extrabold tabular-nums">
+                <span className="font-mono text-xs sm:text-sm font-extrabold tabular-nums">
                   x{streak}
                 </span>
               </div>
             </div>
 
-            {/* Timer */}
+            {/* Timer (supports Freeze power-up) */}
             <div
-              className={`px-3.5 py-2 rounded-xl font-mono text-sm font-bold tabular-nums inline-flex items-center gap-1.5 border ${
-                secondsLeft <= 30
-                  ? 'bg-[#FFDCE8] border-[#E25C83] text-[#8B1E42] animate-pulse'
-                  : 'bg-[#EDF8FD] border-[#CBE8F7] text-[#182230]'
+              className={`px-3 py-2 rounded-xl font-mono text-xs sm:text-sm font-bold tabular-nums inline-flex items-center gap-1.5 border ${
+                freezeSecondsLeft > 0
+                  ? 'bg-[#EDF8FD] border-[#54BCEB] text-[#1D6B94]'
+                  : secondsLeft <= 30
+                    ? 'bg-[#FFDCE8] border-[#E25C83] text-[#8B1E42] animate-pulse'
+                    : 'bg-[#FFF8E9] border-[#EFE7D6] text-[#182230]'
               }`}
             >
-              <Clock className="w-4 h-4" />
-              <span>{formatDuration(secondsLeft)}</span>
+              {freezeSecondsLeft > 0 ? (
+                <Snowflake className="w-4 h-4 text-[#2B8CBE]" />
+              ) : (
+                <Clock className="w-4 h-4" />
+              )}
+              <span>
+                {freezeSecondsLeft > 0
+                  ? `BEKU ${freezeSecondsLeft}s`
+                  : formatDuration(secondsLeft)}
+              </span>
             </div>
+
+            {/* Pause Toggle */}
+            <button
+              type="button"
+              onClick={() => {
+                playClickSfx();
+                setIsPaused((prev) => !prev);
+              }}
+              aria-label={isPaused ? 'Lanjutkan misi' : 'Jeda misi'}
+              title="Jeda misi (P)"
+              className="w-9 h-9 rounded-xl bg-[#FFF8E9] hover:bg-[#FFCA65]/40 border border-[#EFE7D6] flex items-center justify-center text-[#182230] cursor-pointer"
+            >
+              {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+            </button>
 
             {/* Sound Mute/Unmute Toggle */}
             <button
@@ -670,6 +948,21 @@ export function GameSimulator({
       </div>
 
       <div className="max-w-[1060px] mx-auto px-4 sm:px-6 pt-5 space-y-5">
+        {/* Playable 2D Top-Down Office Game Floor */}
+        <OfficeFloorCanvas
+          challenges={sortedChallenges}
+          currentIndex={currentIndex}
+          checkedMap={checkedMap}
+          correctMap={correctMap}
+          answeredMap={answeredMap}
+          userAvatarId={userAvatarId}
+          isPaused={isPaused}
+          onSelectStation={(idx) => setCurrentIndex(idx)}
+          onCollectStar={() => {
+            setSpeedBonusTotal((prev) => prev + 5);
+          }}
+        />
+
         {/* Interactive Case Stepper Map (Papan Jejak Kasus) */}
         <div className="bg-white rounded-3xl p-4 sm:p-5 border border-[#EFE7D6] shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
@@ -812,6 +1105,22 @@ export function GameSimulator({
               )}
             </AnimatePresence>
 
+            {/* Live Colleague Messenger, Detective Power-Ups & Speed Bonus Bar */}
+            {activeDispatch && (
+              <OfficeDispatchBar
+                dispatch={activeDispatch}
+                isChecked={isChecked}
+                caseElapsedSeconds={currentCaseElapsed}
+                scanCharges={scanCharges}
+                freezeCharges={freezeCharges}
+                freezeSecondsLeft={freezeSecondsLeft}
+                scanUsedOnCurrent={Boolean(activeScanResult)}
+                scanFeedback={activeScanResult?.scanMessage}
+                onUseSmartScan={handleUseSmartScan}
+                onUseFreezeTimer={handleUseFreezeTimer}
+              />
+            )}
+
             {/* Interactive Live Office Scene Visualization */}
             <OfficeSceneVisualizer
               challenge={currentChallenge}
@@ -856,11 +1165,16 @@ export function GameSimulator({
                   {(currentChallenge.options ?? []).map((opt, idx) => {
                     const selected = answers[currentChallenge.id] === idx;
                     const isCorrectOpt = idx === currentChallenge.correctIndex;
+                    const isEliminated = Boolean(
+                      activeScanResult?.eliminatedOptionIndices.includes(idx)
+                    );
                     let borderClass =
                       'border-[#E6DEC9] bg-[#FFFDF8] hover:border-[#54BCEB] hover:-translate-y-0.5';
                     if (isChecked) {
                       if (isCorrectOpt) borderClass = 'border-[#71C98A] bg-[#EEF9F1]';
                       else if (selected) borderClass = 'border-[#E25C83] bg-[#FFDCE8]/55';
+                    } else if (isEliminated) {
+                      borderClass = 'border-[#E6DEC9] bg-[#F6F2E9] opacity-45 line-through';
                     } else if (selected) {
                       borderClass = 'border-[#54BCEB] bg-[#EDF8FD] shadow-xs';
                     }
@@ -869,12 +1183,12 @@ export function GameSimulator({
                       <button
                         key={idx}
                         type="button"
-                        disabled={isChecked}
+                        disabled={isChecked || isEliminated}
                         onClick={() => {
                           playClickSfx();
                           updateAnswer(currentChallenge.id, idx);
                         }}
-                        className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center gap-3.5 cursor-pointer ${borderClass}`}
+                        className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center gap-3.5 cursor-pointer disabled:cursor-not-allowed ${borderClass}`}
                       >
                         <span
                           className={`w-9 h-9 rounded-xl border flex items-center justify-center font-mono text-sm font-extrabold shrink-0 ${
@@ -1550,11 +1864,16 @@ export function GameSimulator({
                     {(currentChallenge.options ?? []).map((opt, idx) => {
                       const selected = answers[currentChallenge.id] === idx;
                       const isCorrectOpt = idx === currentChallenge.correctIndex;
+                      const isEliminated = Boolean(
+                        activeScanResult?.eliminatedOptionIndices.includes(idx)
+                      );
                       let borderClass =
                         'border-[#E6DEC9] bg-white hover:border-[#FFCA65] hover:-translate-y-0.5';
                       if (isChecked) {
                         if (isCorrectOpt) borderClass = 'border-[#71C98A] bg-[#EEF9F1]';
                         else if (selected) borderClass = 'border-[#E25C83] bg-[#FFDCE8]/60';
+                      } else if (isEliminated) {
+                        borderClass = 'border-[#E6DEC9] bg-[#F6F2E9] opacity-45 line-through';
                       } else if (selected) {
                         borderClass = 'border-[#FFCA65] bg-[#FFF7E3] shadow-xs';
                       }
@@ -1562,12 +1881,12 @@ export function GameSimulator({
                         <button
                           key={idx}
                           type="button"
-                          disabled={isChecked}
+                          disabled={isChecked || isEliminated}
                           onClick={() => {
                             playClickSfx();
                             updateAnswer(currentChallenge.id, idx);
                           }}
-                          className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center gap-3 cursor-pointer ${borderClass}`}
+                          className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center gap-3 cursor-pointer disabled:cursor-not-allowed ${borderClass}`}
                         >
                           <span className="w-8 h-8 rounded-xl bg-[#FFF8E9] border border-[#D8D0BE] flex items-center justify-center font-mono text-xs font-extrabold shrink-0">
                             {idx + 1}
@@ -1602,11 +1921,16 @@ export function GameSimulator({
                   <div className="space-y-3">
                     {(currentChallenge.choices ?? []).map((choice) => {
                       const selected = answers[currentChallenge.id] === choice.id;
+                      const isEliminated = Boolean(
+                        activeScanResult?.eliminatedChoiceIds.includes(choice.id)
+                      );
                       let cls =
                         'border-[#E6DEC9] bg-white hover:border-[#71C98A] hover:-translate-y-0.5';
                       if (isChecked) {
                         if (choice.isOptimal) cls = 'border-[#71C98A] bg-[#EEF9F1]';
                         else if (selected) cls = 'border-[#E25C83] bg-[#FFDCE8]/60';
+                      } else if (isEliminated) {
+                        cls = 'border-[#E6DEC9] bg-[#F6F2E9] opacity-45 line-through';
                       } else if (selected) {
                         cls = 'border-[#54BCEB] bg-[#EDF8FD] shadow-xs';
                       }
@@ -1614,12 +1938,12 @@ export function GameSimulator({
                         <button
                           key={choice.id}
                           type="button"
-                          disabled={isChecked}
+                          disabled={isChecked || isEliminated}
                           onClick={() => {
                             playClickSfx();
                             updateAnswer(currentChallenge.id, choice.id);
                           }}
-                          className={`w-full text-left p-4 rounded-2xl border-2 transition-all cursor-pointer ${cls}`}
+                          className={`w-full text-left p-4 rounded-2xl border-2 transition-all cursor-pointer disabled:cursor-not-allowed ${cls}`}
                         >
                           <p className="text-sm sm:text-[15px] font-bold text-[#182230]">
                             {choice.label}
@@ -1681,26 +2005,32 @@ export function GameSimulator({
 
             {/* Action Footer */}
             <div className="mt-8 pt-5 border-t border-[#EFE7D6] flex flex-wrap items-center justify-between gap-3">
-              <button
-                type="button"
-                disabled={currentIndex === 0}
-                onClick={() => {
-                  playClickSfx();
-                  setCurrentIndex((i) => Math.max(0, i - 1));
-                }}
-                className="px-4 py-2.5 rounded-xl bg-[#FFF8E9] hover:bg-[#EFE7D6] text-[#182230] text-sm font-semibold disabled:opacity-40 cursor-pointer"
-              >
-                Sebelumnya
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  disabled={currentIndex === 0}
+                  onClick={() => {
+                    playClickSfx();
+                    setCurrentIndex((i) => Math.max(0, i - 1));
+                  }}
+                  className="px-4 py-2.5 rounded-xl bg-[#FFF8E9] hover:bg-[#EFE7D6] text-[#182230] text-sm font-semibold disabled:opacity-40 cursor-pointer"
+                >
+                  Sebelumnya
+                </button>
+                <span className="hidden md:inline text-[11px] font-medium text-[#516072]">
+                  Pintasan: P Jeda · Enter Periksa/Lanjut
+                </span>
+              </div>
 
               <div className="flex items-center gap-3">
                 {!isChecked ? (
                   <button
                     type="button"
                     onClick={handleCheckCurrent}
-                    className="px-6 py-2.5 rounded-xl bg-[#FFCA65] hover:bg-[#F5BC4E] text-[#182230] font-extrabold text-sm cursor-pointer shadow-xs transition-transform active:scale-[0.98]"
+                    className="px-6 py-2.5 rounded-xl bg-[#FFCA65] hover:bg-[#F5BC4E] text-[#182230] font-extrabold text-sm inline-flex items-center gap-2 cursor-pointer shadow-xs transition-transform active:scale-[0.98]"
                   >
-                    Periksa Jawaban
+                    <Stamp className="w-4 h-4" />
+                    <span>Periksa &amp; Stempel Kasus</span>
                   </button>
                 ) : currentIndex < sortedChallenges.length - 1 ? (
                   <button
@@ -1732,6 +2062,83 @@ export function GameSimulator({
           </motion.div>
         )}
       </div>
+
+      {/* Pause Modal */}
+      {isPaused && (
+        <div
+          className="fixed inset-0 z-50 bg-[#182230]/45 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="pause-modal-title"
+        >
+          <div className="w-full max-w-md bg-white rounded-3xl border border-[#EFE7D6] shadow-xl p-6 sm:p-8 text-center space-y-5">
+            <div className="w-14 h-14 rounded-2xl bg-[#FFCA65] mx-auto flex items-center justify-center text-[#182230]">
+              <Pause className="w-7 h-7" />
+            </div>
+            <div>
+              <h2
+                id="pause-modal-title"
+                className="font-display text-2xl font-extrabold text-[#182230]"
+              >
+                Misi Dijeda
+              </h2>
+              <p className="text-sm text-[#516072] mt-1">
+                Waktu dihentikan sementara. Lanjutkan investigasi kapan pun siap.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2.5">
+              <div className="rounded-2xl bg-[#EDF8FD] border border-[#CBE8F7] p-3">
+                <p className="font-mono text-lg font-extrabold text-[#182230] tabular-nums">
+                  {liveStats.earnedPoints}
+                </p>
+                <p className="text-[11px] font-semibold text-[#1D6B94]">Skor Live</p>
+              </div>
+              <div className="rounded-2xl bg-[#EEF9F1] border border-[#CBEBD4] p-3">
+                <p className="font-mono text-lg font-extrabold text-[#182230] tabular-nums">
+                  {officeIntegrity.percentage}%
+                </p>
+                <p className="text-[11px] font-semibold text-[#2E7245]">Integritas</p>
+              </div>
+              <div className="rounded-2xl bg-[#FFF7E3] border border-[#F6DF9F] p-3">
+                <p className="font-mono text-lg font-extrabold text-[#182230] tabular-nums">
+                  {formatDuration(secondsLeft)}
+                </p>
+                <p className="text-[11px] font-semibold text-[#8E5B08]">Sisa Waktu</p>
+              </div>
+            </div>
+
+            <div className="space-y-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  playClickSfx();
+                  setIsPaused(false);
+                }}
+                className="w-full py-3 rounded-xl bg-[#54BCEB] hover:bg-[#3FAEDB] text-[#182230] font-extrabold text-sm inline-flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <Play className="w-4 h-4 fill-current" />
+                <span>Lanjutkan Misi</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleRestartMission}
+                className="w-full py-2.5 rounded-xl bg-[#FFF8E9] hover:bg-[#FFCA65]/40 border border-[#EFE7D6] text-[#182230] font-bold text-sm inline-flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4" />
+                <span>Ulangi Dari Awal</span>
+              </button>
+              <button
+                type="button"
+                onClick={onExit}
+                className="w-full py-2.5 rounded-xl bg-white hover:bg-[#FFDCE8]/60 border border-[#EFE7D6] text-[#7A1C3D] font-bold text-sm cursor-pointer"
+              >
+                Keluar Misi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -92,3 +92,21 @@ export function playMissionCompleteSfx() {
   playTone(783.99, 0.14, 'triangle', 0.08, 0.2);
   playTone(1046.5, 0.3, 'sine', 0.1, 0.3);
 }
+
+export function playPowerUpSfx() {
+  playTone(587.33, 0.08, 'sine', 0.07, 0);
+  playTone(880, 0.09, 'triangle', 0.07, 0.06);
+  playTone(1174.66, 0.14, 'sine', 0.08, 0.12);
+}
+
+export function playFreezeSfx() {
+  playTone(987.77, 0.08, 'sine', 0.06, 0);
+  playTone(783.99, 0.1, 'sine', 0.06, 0.07);
+  playTone(1318.51, 0.16, 'triangle', 0.06, 0.14);
+}
+
+export function playStampSfx() {
+  playTone(190, 0.07, 'triangle', 0.09, 0);
+  playTone(320, 0.09, 'sine', 0.07, 0.04);
+}
+
