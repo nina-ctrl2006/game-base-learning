@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { AVATAR_OPTIONS, DetectiveAvatar, SafeImage } from './Avatars';
 import { RichTextRenderer } from './RichTextRenderer';
-import { extractYouTubeEmbedUrl, getPredikat } from '../utils/gameLogic';
+import { extractYouTubeEmbedUrl, getPredikat, getWelcomeProfile } from '../utils/gameLogic';
 import type {
   AttemptRecord,
   Category,
@@ -588,20 +588,31 @@ export function StudentPortal({
                     </span>
                   </button>
                   <div>
-                    <p className="text-xs font-semibold text-[#2B8CBE]">
-                      Selamat datang kembali, Staf Investigasi
-                    </p>
-                    <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-[#182230]">
-                      Halo, {user.name}!
-                    </h1>
-                    <p className="text-sm text-[#516072] mt-0.5">
-                      {user.institution} · Predikat saat ini:{' '}
-                      <strong className="text-[#182230]">
-                        {userAttempts.length > 0
-                          ? getPredikat(avgScore).title
-                          : 'Calon Administrator'}
-                      </strong>
-                    </p>
+                    {(() => {
+                      const welcome = getWelcomeProfile({
+                        name: user.name,
+                        role: user.role,
+                        institution: user.institution,
+                        completedCount: userAttempts.length,
+                        avgScore,
+                      });
+                      return (
+                        <>
+                          <p className="text-xs font-semibold text-[#2B8CBE]">
+                            {welcome.eyebrow}
+                          </p>
+                          <h1 className="font-display text-2xl sm:text-3xl font-extrabold text-[#182230]">
+                            {welcome.headline}
+                          </h1>
+                          <p className="text-sm text-[#516072] mt-0.5">
+                            {welcome.institutionLabel} · Predikat saat ini:{' '}
+                            <strong className="text-[#182230]">
+                              {welcome.roleOrRankLabel}
+                            </strong>
+                          </p>
+                        </>
+                      );
+                    })()}
                   </div>
                 </div>
 

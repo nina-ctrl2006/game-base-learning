@@ -182,3 +182,41 @@ test('evaluateQuizQuestion and helpers work deterministically', () => {
   );
   assert.ok(recs.length >= 2);
 });
+
+import { getWelcomeProfile } from './gameLogic';
+
+test('getWelcomeProfile tailors greeting to logged-in student and admin users', () => {
+  const freshStudent = getWelcomeProfile({
+    name: 'Siti Rahmawati',
+    role: 'siswa',
+    institution: 'SMK Negeri 2 Bandung',
+    completedCount: 0,
+    avgScore: 0,
+  });
+  assert.equal(freshStudent.eyebrow, 'Selamat datang, Staf Investigasi Baru');
+  assert.equal(freshStudent.headline, 'Halo, Siti Rahmawati!');
+  assert.equal(freshStudent.institutionLabel, 'SMK Negeri 2 Bandung');
+  assert.equal(freshStudent.roleOrRankLabel, 'Calon Administrator');
+
+  const returningStudent = getWelcomeProfile({
+    name: 'Nisrina Mumtaz',
+    role: 'siswa',
+    institution: '',
+    completedCount: 2,
+    avgScore: 95,
+  });
+  assert.equal(returningStudent.eyebrow, 'Selamat datang kembali, Staf Investigasi');
+  assert.equal(returningStudent.headline, 'Halo, Nisrina Mumtaz!');
+  assert.equal(returningStudent.institutionLabel, 'Peserta Umum');
+  assert.equal(returningStudent.roleOrRankLabel, 'Master Administrator');
+
+  const adminUser = getWelcomeProfile({
+    name: 'Ibu Ratna Sari, S.Pd',
+    role: 'admin',
+    institution: 'Tim Kurikulum MPLB',
+  });
+  assert.equal(adminUser.eyebrow, 'Selamat datang di Dashboard Pengajar & Admin');
+  assert.equal(adminUser.headline, 'Halo, Ibu Ratna Sari, S.Pd!');
+  assert.equal(adminUser.roleOrRankLabel, 'Administrator / Guru Pengampu');
+});
+

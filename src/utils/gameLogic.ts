@@ -390,3 +390,49 @@ export function extractYouTubeEmbedUrl(url: string): string | null {
   }
   return null;
 }
+
+export interface WelcomeProfile {
+  eyebrow: string;
+  headline: string;
+  institutionLabel: string;
+  roleOrRankLabel: string;
+}
+
+export function getWelcomeProfile(params: {
+  name?: string;
+  role: 'admin' | 'siswa';
+  institution?: string;
+  completedCount?: number;
+  avgScore?: number;
+}): WelcomeProfile {
+  const safeName = params.name?.trim() || (params.role === 'admin' ? 'Guru / Admin' : 'Peserta');
+  const safeInstitution =
+    params.institution?.trim() ||
+    (params.role === 'admin' ? 'Pengelola Office Mystery' : 'Peserta Umum');
+
+  if (params.role === 'admin') {
+    return {
+      eyebrow: 'Selamat datang di Dashboard Pengajar & Admin',
+      headline: `Halo, ${safeName}!`,
+      institutionLabel: safeInstitution,
+      roleOrRankLabel: 'Administrator / Guru Pengampu',
+    };
+  }
+
+  const completed = Math.max(0, params.completedCount ?? 0);
+  const rank =
+    completed > 0
+      ? getPredikat(params.avgScore ?? 0).title
+      : 'Calon Administrator';
+
+  return {
+    eyebrow:
+      completed > 0
+        ? 'Selamat datang kembali, Staf Investigasi'
+        : 'Selamat datang, Staf Investigasi Baru',
+    headline: `Halo, ${safeName}!`,
+    institutionLabel: safeInstitution,
+    roleOrRankLabel: rank,
+  };
+}
+

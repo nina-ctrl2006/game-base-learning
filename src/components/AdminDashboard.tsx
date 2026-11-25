@@ -7,13 +7,17 @@ import {
   ClipboardCheck,
   Download,
   Edit3,
+  Eye,
+  EyeOff,
   FolderKanban,
   Gamepad2,
+  KeyRound,
   LayoutDashboard,
   LogOut,
   Menu,
   Plus,
   Send,
+  ShieldCheck,
   Trash2,
   Users,
   X,
@@ -22,6 +26,7 @@ import { DetectiveAvatar } from './Avatars';
 import { AdminMaterialEditor } from './AdminMaterialEditor';
 import { AdminGameEditor } from './AdminGameEditor';
 import { api } from '../utils/api';
+import { getWelcomeProfile } from '../utils/gameLogic';
 import type {
   ActivityLog,
   AttemptRecord,
@@ -45,6 +50,7 @@ export type AdminSection =
 
 interface AdminDashboardProps {
   currentUser: PublicUser;
+  adminAccessCode?: string;
   categories: Category[];
   materials: Material[];
   games: GameSimulation[];
@@ -59,6 +65,7 @@ interface AdminDashboardProps {
 
 export function AdminDashboard({
   currentUser,
+  adminAccessCode = 'GURU2026',
   categories,
   materials,
   games,
@@ -92,6 +99,10 @@ export function AdminDashboard({
   const [userRole, setUserRole] = useState<UserRole>('siswa');
   const [userInstitution, setUserInstitution] = useState('');
   const [statusMessage, setStatusMessage] = useState('');
+  const [showAccessCode, setShowAccessCode] = useState(false);
+  const [nextAccessCode, setNextAccessCode] = useState('');
+  const [accessCodeError, setAccessCodeError] = useState('');
+  const [savingAccessCode, setSavingAccessCode] = useState(false);
 
   const catMap = useMemo(
     () => new Map(categories.map((c) => [c.id, c])),
@@ -260,6 +271,24 @@ export function AdminDashboard({
     notify('Pengguna baru berhasil ditambahkan.');
   }
 
+  async function handleUpdateAccessCode(e: React.FormEvent) {
+    e.preventDefault();
+    setAccessCodeError('');
+    setSavingAccessCode(true);
+    try {
+      await api.updateAdminAccessCode(nextAccessCode);
+      setNextAccessCode('');
+      await onRefresh();
+      notify('Kode Khusus Guru / Admin berhasil diperbarui.');
+    } catch (err) {
+      setAccessCodeError(
+        err instanceof Error ? err.message : 'Gagal memperbarui kode khusus.'
+      );
+    } finally {
+      setSavingAccessCode(false);
+    }
+  }
+
   function handleExportCsv() {
     const header = ['Nama Siswa', 'Materi', 'Aktivitas', 'Jenis', 'Skor (%)', 'Predikat', 'Tanggal'];
     const rows = attempts.map((a) => [
@@ -399,6 +428,60 @@ export function AdminDashboard({
           {/* A. DASHBOARD UTAMA */}
           {section === 'overview' && (
             <div className="space-y-6">
+              {(() => {
+                const welcome = getWelcomeProfile({
+                  name: currentUser.name,
+                  role: currentUser.role,
+                  institution: currentUser.institution,
+                });
+                return (
+                  <section className="bg-white rounded-3xl p-6 sm:p-7 border border-[#EFE7D6] shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-5">
+                    <div className="flex items-center gap-4">
+                      <DetectiveAvatar avatarId={currentUser.avatarId} size={60} />
+                      <div>
+                        <p className="text-xs font-semibold text-[#6D3B9E]">
+                          {welcome.eyebrow}
+                        </p>
+                        <h1 className="font-display text-2xl font-extrabold text-[#182230]">
+                          {welcome.headline}
+                        </h1>
+                        <p className="text-sm text-[#516072] mt-0.5">
+                          {welcome.institutionLabel} ·{' '}
+                          <strong className="text-[#182230]">
+                            {welcome.roleOrRankLabel}
+                          </strong>
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSection('materials');
+                          setEditingMaterial('new');
+                        }}
+                        className="px-4 py-2.5 rounded-xl bg-[#54BCEB] hover:bg-[#3FAEDB] text-[#182230] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Plus className="w-4 h-4" />
+                        <span>Tambah Materi</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSection('games');
+                          setEditingGame('new');
+                        }}
+                        className="px-4 py-2.5 rounded-xl bg-[#FFCA65] hover:bg-[#F5BC4E] text-[#182230] text-xs font-bold inline-flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <Gamepad2 className="w-4 h-4" />
+                        <span>Buat Simulasi</span>
+                      </button>
+                    </div>
+                  </section>
+                );
+              })()}
+
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 <div className="bg-white rounded-2xl p-5 border border-[#EFE7D6]">
                   <p className="text-xs font-semibold text-[#516072]">Total Materi</p>
@@ -1094,6 +1177,82 @@ export function AdminDashboard({
                   <Plus className="w-4 h-4" />
                   <span>Tambah Pengguna</span>
                 </button>
+              </div>
+
+              {/* Keamanan Akses Guru / Admin */}
+              <div className="bg-white rounded-3xl p-6 border border-[#EFE7D6]">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-5">
+                  <div className="space-y-1.5 max-w-xl">
+                    <h2 className="font-display text-lg font-extrabold flex items-center gap-2 text-[#182230]">
+                      <ShieldCheck className="w-5 h-5 text-[#6D3B9E]" />
+                      <span>Kode Khusus Login Guru / Admin</span>
+                    </h2>
+                    <p className="text-xs text-[#516072] leading-relaxed">
+                      Kode ini wajib dimasukkan saat login ke akun Guru / Admin agar siswa tidak
+                      bisa masuk secara tidak sengaja jika salah menekan tombol.
+                    </p>
+                    <div className="pt-1 flex items-center gap-2">
+                      <span className="text-xs text-[#516072]">Kode aktif saat ini:</span>
+                      <code
+                        data-testid="active-admin-code"
+                        className="px-3 py-1 rounded-lg bg-[#F5EEFC] text-[#3C2258] font-mono text-sm font-bold tracking-wider"
+                      >
+                        {showAccessCode ? adminAccessCode : '••••••••'}
+                      </code>
+                      <button
+                        type="button"
+                        onClick={() => setShowAccessCode((prev) => !prev)}
+                        aria-label={
+                          showAccessCode
+                            ? 'Sembunyikan kode khusus aktif'
+                            : 'Lihat kode khusus aktif'
+                        }
+                        className="w-8 h-8 rounded-lg bg-[#FFF8E9] hover:bg-[#FFCA65]/40 flex items-center justify-center text-[#182230] cursor-pointer"
+                      >
+                        {showAccessCode ? (
+                          <EyeOff className="w-4 h-4" />
+                        ) : (
+                          <Eye className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  <form
+                    onSubmit={handleUpdateAccessCode}
+                    className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 lg:min-w-[390px]"
+                  >
+                    <label htmlFor="admin-access-code-input" className="sr-only">
+                      Kode Khusus Guru / Admin Baru
+                    </label>
+                    <div className="relative flex-1">
+                      <KeyRound className="w-4 h-4 text-[#6D3B9E] absolute left-3.5 top-1/2 -translate-y-1/2" />
+                      <input
+                        id="admin-access-code-input"
+                        type="text"
+                        required
+                        minLength={4}
+                        maxLength={32}
+                        value={nextAccessCode}
+                        onChange={(e) => setNextAccessCode(e.target.value)}
+                        placeholder="Kode baru (4–32 karakter)"
+                        className="w-full pl-10 pr-3.5 py-2.5 rounded-xl border border-[#D8D0BE] bg-white text-sm focus:border-[#BB8AE8] outline-none"
+                      />
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={savingAccessCode}
+                      className="px-4 py-2.5 rounded-xl bg-[#BB8AE8] hover:bg-[#AA74DC] text-[#182230] font-bold text-sm cursor-pointer disabled:opacity-60 whitespace-nowrap"
+                    >
+                      {savingAccessCode ? 'Menyimpan...' : 'Ubah Kode'}
+                    </button>
+                  </form>
+                </div>
+                {accessCodeError && (
+                  <p role="alert" className="mt-3 text-xs font-semibold text-[#9A2348]">
+                    {accessCodeError}
+                  </p>
+                )}
               </div>
 
               {userFormOpen && (

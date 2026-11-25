@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { LandingPage } from './components/LandingPage';
-import { AuthModal } from './components/AuthModal';
+import { AuthModal, type AuthModalMode } from './components/AuthModal';
 import { AdminDashboard } from './components/AdminDashboard';
 import { StudentPortal, type StudentTab } from './components/StudentPortal';
 import { GameSimulator } from './components/GameSimulator';
@@ -29,7 +29,7 @@ type ActiveView =
 export default function App() {
   const [data, setData] = useState<BootstrapPayload | null>(null);
   const [loading, setLoading] = useState(true);
-  const [authModalMode, setAuthModalMode] = useState<'login' | 'register' | null>(
+  const [authModalMode, setAuthModalMode] = useState<AuthModalMode | null>(
     null
   );
   const [studentTab, setStudentTab] = useState<StudentTab>('beranda');
@@ -86,10 +86,11 @@ export default function App() {
   }
 
   async function handleQuickDemoLogin(role: 'admin' | 'siswa') {
-    const email =
-      role === 'admin' ? 'admin@officemystery.id' : 'siswa@officemystery.id';
-    const pass = role === 'admin' ? 'admin123' : 'siswa123';
-    const res = await api.login(email, pass);
+    if (role === 'admin') {
+      setAuthModalMode('admin');
+      return;
+    }
+    const res = await api.login('siswa@officemystery.id', 'siswa123');
     await handleAuthSuccess(res.user);
   }
 
@@ -122,6 +123,7 @@ export default function App() {
     return (
       <AdminDashboard
         currentUser={currentUser}
+        adminAccessCode={data.adminAccessCode}
         categories={data.categories}
         materials={data.materials}
         games={data.games}
@@ -144,6 +146,8 @@ export default function App() {
         <GameSimulator
           game={game}
           material={material}
+          userAvatarId={currentUser.avatarId}
+          userName={currentUser.name}
           onExit={() => setView({ type: 'student' })}
           onCompleteAttempt={async (attemptPayload) => {
             const res = await api.submitAttempt(attemptPayload);

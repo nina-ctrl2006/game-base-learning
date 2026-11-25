@@ -229,6 +229,7 @@ export interface ActivityLog {
 }
 
 export interface DatabaseState {
+  adminAccessCode?: string;
   users: User[];
   categories: Category[];
   materials: Material[];

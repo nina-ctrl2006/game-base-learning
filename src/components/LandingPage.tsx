@@ -18,7 +18,7 @@ interface LandingPageProps {
   materialsCount: number;
   gamesCount: number;
   materials: Material[];
-  onOpenAuth: (mode?: 'login' | 'register') => void;
+  onOpenAuth: (mode?: 'login' | 'admin' | 'register') => void;
   onQuickDemoLogin: (role: 'admin' | 'siswa') => void;
 }
 
@@ -150,7 +150,7 @@ export function LandingPage({
                   </button>
                   <button
                     type="button"
-                    onClick={() => onQuickDemoLogin('admin')}
+                    onClick={() => onOpenAuth('admin')}
                     className="inline-flex items-center gap-2 px-5 py-3.5 rounded-2xl bg-[#EDF8FD] hover:bg-[#DDF2FB] text-[#182230] font-semibold text-sm transition-colors whitespace-nowrap shrink-0 cursor-pointer"
                   >
                     <span>Masuk Dashboard Guru / Admin</span>

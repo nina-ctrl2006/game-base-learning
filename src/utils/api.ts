@@ -12,6 +12,7 @@ import type {
 
 export interface BootstrapPayload {
   currentUser: PublicUser | null;
+  adminAccessCode?: string;
   categories: Category[];
   materials: Material[];
   games: GameSimulation[];
@@ -20,6 +21,15 @@ export interface BootstrapPayload {
   progress: MaterialProgress[];
   users: PublicUser[];
   activities: ActivityLog[];
+}
+
+export class ApiRequestError extends Error {
+  requiresAdminCode?: boolean;
+  constructor(message: string, requiresAdminCode?: boolean) {
+    super(message);
+    this.name = 'ApiRequestError';
+    this.requiresAdminCode = requiresAdminCode;
+  }
 }
 
 const SESSION_KEY = 'om_current_user_id';
@@ -53,16 +63,20 @@ async function request<T>(url: string, options: RequestInit = {}): Promise<T> {
   const res = await fetch(url, { ...options, headers });
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
-    throw new Error((data as { error?: string }).error || `Permintaan gagal (${res.status})`);
+    const errBody = data as { error?: string; requiresAdminCode?: boolean };
+    throw new ApiRequestError(
+      errBody.error || `Permintaan gagal (${res.status})`,
+      errBody.requiresAdminCode
+    );
   }
   return data as T;
 }
 
 export const api = {
-  login(email: string, password: string) {
+  login(email: string, password: string, adminCode?: string) {
     return request<{ user: PublicUser }>('/api/auth/login', {
       method: 'POST',
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, adminCode }),
     });
   },
 
@@ -167,6 +181,13 @@ export const api = {
 
   deleteUser(id: string) {
     return request<{ ok: boolean }>(`/api/users/${id}`, { method: 'DELETE' });
+  },
+
+  updateAdminAccessCode(adminAccessCode: string) {
+    return request<{ adminAccessCode: string }>('/api/admin/access-code', {
+      method: 'PATCH',
+      body: JSON.stringify({ adminAccessCode }),
+    });
   },
 
   markMaterialRead(materialId: string, materialRead = true) {

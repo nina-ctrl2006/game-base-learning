@@ -4,6 +4,7 @@ export function createSeedData(): DatabaseState {
   const now = '2026-11-20T08:00:00.000Z';
 
   return {
+    adminAccessCode: 'GURU2026',
     users: [
       {
         id: 'usr_admin_1',

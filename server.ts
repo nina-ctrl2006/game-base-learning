@@ -4,6 +4,11 @@ import path from 'path';
 import crypto from 'crypto';
 import { createServer as createViteServer } from 'vite';
 import { loadDatabase, saveDatabase, UPLOADS_DIR } from './server/db.ts';
+import {
+  resolveAdminAccessCode,
+  validateAdminLoginGate,
+  validateNewAdminAccessCode,
+} from './server/authRules.ts';
 import type {
   ActivityLog,
   AttemptRecord,
@@ -66,7 +71,11 @@ app.get('/api/health', (_req, res) => {
 
 // Auth: Login
 app.post('/api/auth/login', (req, res) => {
-  const { email, password } = req.body as { email?: string; password?: string };
+  const { email, password, adminCode } = req.body as {
+    email?: string;
+    password?: string;
+    adminCode?: string;
+  };
   if (!email || !password) {
     res.status(400).json({ error: 'Email dan kata sandi wajib diisi.' });
     return;
@@ -79,6 +88,16 @@ app.post('/api/auth/login', (req, res) => {
     res.status(401).json({ error: 'Email atau kata sandi tidak sesuai.' });
     return;
   }
+
+  const gate = validateAdminLoginGate(user.role, adminCode, db.adminAccessCode);
+  if (!gate.allowed) {
+    res.status(403).json({
+      error: gate.error,
+      requiresAdminCode: gate.requiresAdminCode,
+    });
+    return;
+  }
+
   user.lastActiveAt = new Date().toISOString();
   saveDatabase(db);
   res.json({ user: toPublicUser(user) });
@@ -130,6 +149,7 @@ app.get('/api/bootstrap', (req, res) => {
 
   res.json({
     currentUser: currentUser ? toPublicUser(currentUser) : null,
+    adminAccessCode: isAdmin ? resolveAdminAccessCode(db.adminAccessCode) : undefined,
     categories: [...db.categories].sort((a, b) => a.order - b.order),
     materials: (isAdmin
       ? db.materials
@@ -478,6 +498,22 @@ app.delete('/api/users/:id', (req, res) => {
   db.users = db.users.filter((u) => u.id !== req.params.id);
   saveDatabase(db);
   res.json({ ok: true });
+});
+
+app.patch('/api/admin/access-code', (req, res) => {
+  const admin = requireAdmin(req, res);
+  if (!admin) return;
+  const { adminAccessCode } = req.body as { adminAccessCode?: string };
+  const validation = validateNewAdminAccessCode(adminAccessCode);
+  if (!validation.valid) {
+    res.status(400).json({ error: validation.error });
+    return;
+  }
+  const db = loadDatabase();
+  db.adminAccessCode = validation.normalized;
+  logActivity(db, admin.id, 'Memperbarui Kode Khusus Guru / Admin', 'Keamanan Akses');
+  saveDatabase(db);
+  res.json({ adminAccessCode: db.adminAccessCode });
 });
 
 // Student Progress & Attempts
